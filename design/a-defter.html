@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · Yeni defter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="a.css"><link rel="stylesheet" href="a2.css"><link rel="stylesheet" href="a-ui.css">
+<style>
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:16px}
+.opt{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;height:112px;border-radius:20px;padding:8px 6px 10px;font-weight:800;font-size:13px}
+.opt img{height:66px;max-width:100%;object-fit:contain}
+.opt.on{box-shadow:inset 0 0 0 2.5px var(--ink),0 5px 0 #2a2733}
+.opt.other{border:2.5px dashed #c9c0ae;color:#8d7f66;justify-content:center}
+.opt.other svg{width:26px;height:26px}
+.sw{display:flex;align-items:center;gap:12px;background:#fffdf7;border:1.5px solid #ebe5d9;border-radius:18px;padding:12px 14px}
+.sw div{flex:1}.sw b{display:block;font-size:15px}
+.tg{width:48px;height:28px;border-radius:14px;background:#e2dbcd;position:relative;flex:none}
+.tg::after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 0 #cfc7b8}
+.tg.on{background:var(--ink)}.tg.on::after{left:23px;box-shadow:none}
+.cover{position:relative;height:200px;border:2.5px dashed #c9c0ae;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#8d7f66;text-align:center}
+.cover svg{width:30px;height:30px}
+.ex{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.ex span{background:#efebe3;border-radius:14px;padding:7px 12px;font-size:13px;font-weight:700}
+.av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:12px;color:#fff;background:#2a2733}
+</style></head><body>
+<p class="cap">Yeni defter: tür seç + ad (tek sheet) → boş defter ilk anıya çağırır. Defter sınırı yok.</p>
+
+<!-- 1 · Yeni defter sheet -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:44px">Merhaba Ahmet</p>
+  <div class="books" style="margin-top:30px">
+    <a class="bk d3" href="#" style="--c:#fffdf7"><b>Sevgilimle</b><small>21 anı</small><img class="stk" src="assets/cift_02.png" alt=""></a>
+    <a class="bk d3" href="#" style="--c:#fffdf7"><b>Fıstık</b><small>12 gündür boş</small><img class="stk" src="assets/cut_kopek.png" alt=""></a>
+  </div>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <p class="t-sec" style="font-size:24px">Yeni defter</p>
+  <p class="sub" style="margin-top:2px">Kimin anıları birikecek?</p>
+  <div class="opts">
+    <button class="opt d3" style="--c:#fffdf7"><img class="stk" src="assets/cift_02.png" alt="">Sevgilim</button>
+    <button class="opt d3 on" style="--c:#fffdf7"><img class="stk" src="assets/cift_08.png" alt="">Çocuğum</button>
+    <button class="opt d3" style="--c:#fffdf7"><img class="stk" src="assets/cut_kopek.png" alt="">Evcil hayvan</button>
+    <button class="opt d3" style="--c:#fffdf7"><img class="stk" src="assets/cift_06.png" alt="">Ailem</button>
+    <button class="opt d3" style="--c:#fffdf7"><img class="stk" src="assets/me_05.png" alt="">Arkadaşlar</button>
+    <button class="opt other"><svg data-i="plus"></svg>Başka</button>
+  </div>
+  <p class="k" style="margin-top:20px">DEFTERİN ADI</p>
+  <label class="field" style="margin-top:8px"><input value="Bebeğimiz" aria-label="Defter adı"></label>
+  <div class="sw" style="margin-top:12px"><div><b>Birlikte doldur</b><span class="sub">Bir kişiyi davet et, o da eklesin</span></div><span class="tg" role="switch" aria-checked="false"></span></div>
+  <button class="btn" style="margin-top:18px">Defteri aç</button>
+</div>
+</div>
+
+<!-- 2 · Boş defter (ilk anıyı bekliyor) -->
+<div class="phone"><div class="scroll">
+  <div class="top"><button class="ib d3s" aria-label="Geri"><svg data-i="back"></svg></button><button class="ib d3s" aria-label="Diğer"><svg data-i="more"></svg></button></div>
+  <p class="hand" style="font-size:46px;margin-top:16px">Bebeğimiz</p>
+  <p class="sub">Bugün açıldı · 0 anı</p>
+  <div class="cover" style="margin-top:20px">
+    <svg data-i="img"></svg>
+    <p class="t-note" style="color:var(--ink)">İlk anı kapak olur</p>
+    <p class="sub" style="max-width:240px">Galeriden eski bir fotoğraf da seçebilirsin. Tarihi kendi gelir.</p>
+  </div>
+  <p class="k" style="margin-top:22px">BU DEFTERE NE YAKIŞIR</p>
+  <div class="ex"><span>Ultrason</span><span>İlk tekme</span><span>Hastane çıkışı</span><span>İlk banyo</span><span>İlk gülüş</span></div>
+  <div class="sw" style="margin-top:18px"><span class="av" style="background:#efebe3;color:#8d877c">+</span><div><b>Birlikte doldurun</b><span class="sub">Eşini davet et, ikiniz de ekleyin</span></div><b style="color:var(--red);flex:none;font-size:14px">Davet et</b></div>
+</div>
+<div class="foot"><button class="btn"><svg data-i="plus"></svg>İlk anıyı ekle · 1 fırça</button></div>
+</div>
+
+<script src="shared.js"></script>
+</body></html>

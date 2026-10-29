@@ -1,0 +1,64 @@
+.phone{--ink:#2a2733;--red:#c9533a;--paper:#fffdf7;background:#f7f5f0;color:var(--ink);font-family:Nunito,sans-serif}
+.hand{font-family:Caveat,cursive;font-weight:700;line-height:1}
+.sub{font-size:13px;font-weight:700;opacity:.55}
+/* 3B kural: blur gölge yok. Üstten açık degrade + üstte ince parlama + altta koyu, sert kalınlık. --c = yüzey rengi */
+.d3{--c:#fffdf7;background:linear-gradient(180deg,color-mix(in srgb,var(--c),#fff 22%),var(--c));box-shadow:inset 0 1.5px 0 rgba(255,255,255,.6),0 5px 0 color-mix(in srgb,var(--c),#000 24%)}
+.d3s{--c:#fffdf7;background:linear-gradient(180deg,#fff,var(--c));box-shadow:inset 0 1px 0 #fff,0 3px 0 color-mix(in srgb,var(--c),#000 14%)}
+.chip{border-radius:20px;padding:6px 12px 6px 9px;font-weight:800;font-size:14px;--c:#efe9de}
+.chip svg{width:16px;height:16px;color:var(--red)}
+.ib{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;--c:#efe9de}
+.ib svg{width:22px;height:22px}
+/* C kartı: renk blok, çizim taşar */
+.card{position:relative;border-radius:28px;padding:18px 20px;display:flex;flex-direction:column;justify-content:flex-end;color:var(--ink);text-decoration:none}
+.card .art{position:absolute;object-fit:contain}
+.pill{align-self:flex-start;border-radius:14px;padding:4px 10px;font-size:12px;font-weight:800;margin-bottom:8px}
+.k{font-size:11px;font-weight:800;letter-spacing:.06em;opacity:.55}
+/* defterler */
+.books{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 16px;margin-top:12px}
+.bk{position:relative;height:184px;border-radius:6px 16px 16px 6px;padding:10px 10px 10px 18px;display:flex;flex-direction:column;color:var(--ink);text-decoration:none}
+.bk.d3{box-shadow:inset 8px 0 0 rgba(0,0,0,.13),inset 0 1.5px 0 rgba(255,255,255,.5),0 6px 0 color-mix(in srgb,var(--c),#000 26%)}
+.bk img{flex:1;min-height:0;width:100%;object-fit:contain;padding:4px 0 8px}
+.lbl{padding:6px 10px;border-radius:8px}
+.lbl b{font-family:Caveat;font-size:24px;display:block;line-height:1}
+.lbl small{font-size:11px;font-weight:700;opacity:.55}
+.new{border:2.5px dashed #c9c0ae;background:none;box-shadow:none;align-items:center;justify-content:center;color:#8d7f66;border-radius:16px}
+.tab{background:var(--paper);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+.plus{background:var(--red);color:#fff;border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink)}
+/* takvim: boş gün düz, dolu gün kabarık, bugün kırmızı kenarlı */
+.cal{row-gap:8px}
+.cal span{background:#efebe3}
+.cal span.has{--c:#fffdf7;background:linear-gradient(180deg,#fff,var(--c));box-shadow:inset 0 1px 0 #fff,0 3px 0 #ddd5c6}
+.cal span.today{box-shadow:inset 0 0 0 2px var(--red),0 3px 0 #8e3426}
+.cal em{font-family:Caveat;font-size:16px;font-weight:700;top:1px}
+/* alt bar: B akış, 3B */
+.bar{position:absolute;left:50%;bottom:32px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:7px;border-radius:34px;z-index:5;background:linear-gradient(180deg,#3b3a3e,#161616);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),inset 0 -2px 0 rgba(0,0,0,.6),0 6px 0 #000,0 20px 30px -10px rgba(0,0,0,.55)}
+.bar button{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;color:#8f8b84}
+.bar button.on{color:#fff}
+.bar .add{width:auto;padding:0 20px 0 16px;border-radius:26px;display:flex;gap:6px;font-weight:800;font-size:15px;white-space:nowrap;color:#161616;background:linear-gradient(180deg,#fff,#ebe6dc);box-shadow:inset 0 -3px 0 #d3ccbf,0 2px 0 rgba(0,0,0,.45),0 8px 12px -4px rgba(0,0,0,.5)}
+.bar .add:active{transform:translateY(2px);box-shadow:inset 0 -1px 0 #d3ccbf,0 1px 0 rgba(0,0,0,.45)}
+.bar svg{width:24px;height:24px}
+/* basınca kalınlık kaybolur */
+.d3:active,.d3s:active{transform:translateY(3px);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.6),0 2px 0 color-mix(in srgb,var(--c),#000 24%)}
+/* --- tur 2 --- */
+/* 4: bar arkasına geçiş */
+.phone .scroll{padding-bottom:160px}
+.phone::after{content:"";position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(rgba(247,245,240,0),#f7f5f0 62%);pointer-events:none;z-index:4}
+/* 5: bar yan butonları yazılı */
+.bar button.tb{width:auto;min-width:64px;height:52px;border-radius:26px;display:flex;flex-direction:column;gap:2px;align-items:center;justify-content:center;font-size:10px;font-weight:800;padding:0 8px}
+.bar button.tb svg{width:22px;height:22px}
+/* 3: kapakta ad, etiket yok */
+.bk b{font-family:Caveat;font-size:27px;line-height:1}
+.bk small{font-size:11px;font-weight:700;opacity:.6}
+.bk img{padding:6px 0 0}
+/* 2: takvimde çizim kesiti + numara rozeti, gelecek sade */
+.cal span.has{overflow:hidden}
+.cal span.has img{left:0;top:0;width:100%;height:100%;object-fit:cover;object-position:50% 0;transform:scale(1.35);transform-origin:50% 18%;filter:none}
+.cal span.has em{background:rgba(255,255,255,.92);border-radius:7px;padding:0 4px;top:3px;left:3px;font-size:13px;line-height:15px}
+.cal .fut{background:none!important;opacity:.3}
+/* 1: bugün kartı */
+.tcard{min-height:250px;justify-content:flex-end;padding-top:0;margin-top:36px}
+.tcard .art{left:50%;transform:translateX(-50%);top:-30px;width:210px}
+.invite{min-height:210px;align-items:center;justify-content:center;text-align:center;gap:6px}
+.ph{width:96px;height:96px;border-radius:28px;border:2.5px dashed rgba(42,39,51,.25);display:grid;place-items:center;margin-bottom:6px}
+.ph svg{width:34px;height:34px;opacity:.45}
+.go{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:10px 18px;border-radius:22px;font-weight:800;font-size:14px;color:#fff;--c:#2a2733;background:linear-gradient(180deg,#45424f,#2a2733);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 0 #0e0d12}

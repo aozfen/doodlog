@@ -1,43 +1,23 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+# Secrets
+.env
+.env.*
 
-# dependencies
-node_modules/
-
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
+# OS
 .DS_Store
-*.pem
 
-# local env files
-.env*.local
+# Test script build output
+__pycache__/
+test/scripts/.bin/
 
-# typescript
-*.tsbuildinfo
-
-example
-
-# generated native folders
-/ios
-/android
+# Test & marketing media (local only)
+test/outputs/
+test/cards/
+test/photos/**/*.jpg
+test/photos/**/*.jpeg
+test/photos/**/*.png
+test/photos/**/*.heic
+test/photos/**/*.HEIC
+pazarlama/**/img/
+*.mp4
+design/assets/
+design/logo/png/

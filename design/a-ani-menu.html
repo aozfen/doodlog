@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · Anı menüsü</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="a.css"><link rel="stylesheet" href="a2.css"><link rel="stylesheet" href="a-ui.css">
+<style>
+.list{background:#fffdf7;border:1.5px solid #ebe5d9;border-radius:20px;overflow:hidden}
+.mi{display:flex;align-items:center;gap:14px;width:100%;min-height:54px;padding:10px 16px;text-align:left;font-weight:700;font-size:15px}
+.mi+.mi{border-top:1.5px solid #ebe5d9}
+.mi>span{flex:1}
+.mi small{display:block;font-size:12px;font-weight:700;opacity:.55}
+.mi>svg{width:20px;height:20px;flex:none;opacity:.65}
+.mi.red{color:var(--red)}.mi.red>svg{opacity:1}
+.mi .ck{width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;flex:none}
+.mi .ck svg{width:14px;height:14px}
+.mi img{width:44px;height:44px;object-fit:contain;flex:none}
+.ta{width:100%;min-height:120px;background:#fffdf7;border:1.5px solid #2a2733;border-radius:18px;padding:14px 16px;font:700 17px/1.4 Nunito,sans-serif;color:var(--ink);resize:none;outline:none}
+.cnt{text-align:right;font-size:12px;font-weight:700;opacity:.45;margin-top:6px}
+.cal span.pick{box-shadow:inset 0 0 0 2.5px var(--ink);background:#fffdf7}
+.cal span.pick em{color:var(--ink)}
+.cal span .dot{position:absolute;left:50%;bottom:5px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--red)}
+.btnr{display:flex;align-items:center;justify-content:center;width:100%;height:56px;border-radius:28px;font-weight:800;font-size:16px;color:#fff;background:linear-gradient(180deg,#d8664d,#c9533a);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 5px 0 #8e3426}
+.toast{position:absolute;left:20px;right:20px;bottom:120px;z-index:8;display:flex;align-items:center;gap:10px;background:#2a2733;color:#fff;border-radius:18px;padding:14px 16px;font-weight:700;font-size:14px}
+.toast span{flex:1}.toast b{color:#f0a493}
+</style></head><body>
+<p class="cap">Anı menüsü: anı detayındaki ⋯ butonu. Her iş kısa bir sheet, ana akışa soru eklenmez.</p>
+
+<!-- 1 · Menü -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:38px;margin-top:58px;opacity:.5">25 Ekim</p>
+  <div class="card flat" style="margin-top:18px;height:300px;align-items:center;justify-content:center;opacity:.5"><img class="stk" src="assets/cift_01.png" alt="" style="width:260px"></div>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div class="list">
+    <button class="mi"><svg data-i="chat"></svg><span>Notu düzenle</span></button>
+    <button class="mi"><svg data-i="cal"></svg><span>Tarihi değiştir<small>25 Ekim</small></span></button>
+    <button class="mi"><svg data-i="nb"></svg><span>Başka deftere taşı<small>Sevgilimle</small></span></button>
+    <button class="mi"><svg data-i="book"></svg><span>Defterin kapağı yap</span></button>
+    <button class="mi"><svg data-i="dl"></svg><span>Çizimi galeriye kaydet</span></button>
+  </div>
+  <div class="list" style="margin-top:12px"><button class="mi red"><svg data-i="x"></svg><span>Anıyı sil</span></button></div>
+</div>
+</div>
+
+<!-- 2 · Notu düzenle -->
+<div class="phone"><div class="scroll">
+  <div class="top"><button class="sub" style="opacity:.7">Vazgeç</button><button style="font-weight:800;color:var(--red)">Kaydet</button></div>
+  <p class="hand" style="font-size:38px;margin-top:18px">25 Ekim</p>
+  <p class="sub">Pazar · Sevgilimle</p>
+  <div class="row" style="margin-top:16px;gap:14px;align-items:flex-start">
+    <img class="stk" src="assets/cift_01.png" alt="" style="width:96px;flex:none">
+    <div style="flex:1">
+      <textarea class="ta" aria-label="Not">Sabah sandviç sürprizi. Teşekkürü öpücükle aldı.|</textarea>
+      <p class="cnt">49 / 280</p>
+    </div>
+  </div>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0;height:300px;background:#d3d0d8;z-index:5;display:flex;align-items:center;justify-content:center;font:700 13px system-ui;color:#777">klavye</div>
+</div>
+
+<!-- 3 · Tarihi değiştir -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:38px;margin-top:58px;opacity:.5">25 Ekim</p>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div class="row sp"><button class="ib d3s" aria-label="Önceki ay"><svg data-i="back"></svg></button><p class="t-sec">Ekim 2026</p><button class="ib d3s" aria-label="Sonraki ay"><svg data-i="back" style="transform:scaleX(-1)"></svg></button></div>
+  <div class="cal" data-month="{}" data-only="{}" style="margin-top:14px" id="pick"></div>
+  <p class="sub" style="margin-top:12px;display:flex;align-items:center;gap:6px"><i style="width:6px;height:6px;border-radius:50%;background:var(--red);display:inline-block"></i>Fotoğrafın çekildiği gün: 25 Ekim</p>
+  <button class="btn" style="margin-top:18px">24 Ekim'e taşı</button>
+</div>
+</div>
+
+<!-- 4 · Başka deftere taşı -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:38px;margin-top:58px;opacity:.5">25 Ekim</p>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <p class="t-sec" style="text-align:center">Hangi deftere?</p>
+  <div class="list" style="margin-top:16px">
+    <button class="mi"><img class="stk" src="assets/cift_04.png" alt=""><span>Sevgilimle<small>Şu an burada</small></span><i class="ck"><svg data-i="check"></svg></i></button>
+    <button class="mi"><img class="stk" src="assets/cut_kopek.png" alt=""><span>Fıstık<small>8 anı</small></span></button>
+    <button class="mi"><img class="stk" src="assets/me_01.png" alt=""><span>Kendim<small>4 anı</small></span></button>
+    <button class="mi"><span style="width:44px;height:44px;border-radius:14px;border:2px dashed #c9c0ae;display:grid;place-items:center;flex:none;color:#8d7f66"><svg data-i="plus" style="width:20px;height:20px"></svg></span><span>Yeni defter</span></button>
+  </div>
+  <p class="sub" style="text-align:center;margin-top:14px;font-size:12px">Fırça harcanmaz, çizim aynı kalır.</p>
+</div>
+</div>
+
+<!-- 5 · Anıyı sil -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:38px;margin-top:58px;opacity:.5">25 Ekim</p>
+</div>
+<div class="dim"></div>
+<div class="sheet" style="text-align:center">
+  <div class="grab"></div>
+  <img class="stk" src="assets/cift_01.png" alt="" style="width:120px;margin:0 auto;opacity:.9">
+  <p class="t-sec" style="font-size:24px;margin-top:12px">Bu anı silinsin mi?</p>
+  <p class="sub" style="margin-top:8px;line-height:1.5">Çizim ve not bu telefondan silinir. Orijinal fotoğrafın galerinde kalır. Harcanan fırça geri gelmez.</p>
+  <button class="btnr" style="margin-top:22px">Sil</button>
+  <button class="sub" style="display:block;margin:14px auto 0;height:24px">Vazgeç</button>
+</div>
+</div>
+
+<!-- 6 · Silindi: geri al -->
+<div class="phone"><div class="scroll">
+  <div class="row sp"><button class="ib d3s" aria-label="Geri"><svg data-i="back"></svg></button></div>
+  <p class="hand" style="font-size:44px;margin-top:16px">Sevgilimle</p>
+  <p class="sub">22 anı</p>
+  <div class="row sp" style="margin:22px 0 12px"><p class="t-sec" style="font-size:24px">Ekim 2026</p><span class="sub">7 / 31 gün</span></div>
+  <div class="cal" data-month="{}" data-only='{"3":"cift_03","7":"cift_07","12":"cift_02","15":"cift_05","18":"cift_04","21":"cift_06","24":"cift_08"}'></div>
+</div>
+<div class="toast"><span>Anı silindi.</span><b>Geri al</b></div>
+<nav class="bar"><button class="tb on"><svg data-i="nb"></svg>Defterler</button><button class="add"><svg data-i="plus"></svg>Anı ekle</button><button class="tb"><svg data-i="cal"></svg>Takvim</button></nav>
+</div>
+<script src="shared.js"></script>
+<script>
+// tarih seçici: 24 seçili, 25 fotoğraf günü (nokta), bugünden sonrası kapalı
+document.querySelectorAll('#pick span').forEach(s=>{const d=+s.textContent;s.classList.remove('today');if(d==24)s.classList.add('pick');if(d==25){s.insertAdjacentHTML('beforeend','<i class="dot"></i>')}});
+</script>
+</body></html>

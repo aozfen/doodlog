@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · Ortak defter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="a.css"><link rel="stylesheet" href="a2.css"><link rel="stylesheet" href="a-ui.css">
+<style>
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;border:2.5px solid #f7f5f0}
+.av.a{background:#2a2733}.av.e{background:#c9533a}
+.avs{display:flex}.avs .av+.av{margin-left:-10px}
+.link{display:flex;align-items:center;gap:10px;background:#efebe3;border-radius:16px;padding:12px 14px;font-weight:700;font-size:14px}
+.link span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cal span.by::after{content:attr(data-by);position:absolute;right:2px;bottom:2px;width:16px;height:16px;border-radius:50%;font-size:9px;font-weight:800;color:#fff;display:grid;place-items:center;z-index:3;background:#2a2733;border:1.5px solid #fff}
+.cal span.by[data-by=E]::after{background:#c9533a}
+.feed{display:flex;align-items:center;gap:12px}
+.feed img{width:64px}
+</style></head><body>
+<p class="cap">Ortak defter: davet et → partner katılır (ilk açılışı atlar) → ikisi birlikte doldurur.</p>
+
+<!-- 1 · Davet et -->
+<div class="phone"><div class="scroll">
+  <div class="card flat" style="margin-top:30px;min-height:150px;opacity:.5">
+    <img class="art stk" src="assets/cift_04.png" alt="" style="right:-8px;top:-34px;height:184px">
+    <span class="hand" style="font-size:40px">Sevgilimle</span>
+  </div>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div class="avs" style="justify-content:center"><span class="av a">A</span><span class="av" style="background:#efebe3;color:#8d877c;border-style:dashed;border-color:#c9c0ae">+</span></div>
+  <p class="hand" style="font-size:38px;text-align:center;margin-top:12px">Defteri birlikte doldurun</p>
+  <p class="sub" style="text-align:center;margin-top:8px;line-height:1.45">Sevgilin de anı ekleyebilir, ikiniz de her şeyi görürsünüz. Biri ekleyince diğerine haber gider.</p>
+  <div class="link" style="margin-top:20px"><svg data-i="share" style="width:18px;height:18px;flex:none"></svg><span>doods.app/d/7hK2-sevgilimle</span><b style="color:var(--red)">Kopyala</b></div>
+  <button class="btn" style="margin-top:16px"><svg data-i="chat"></svg>Mesajla gönder</button>
+  <p class="sub" style="text-align:center;margin-top:12px;font-size:12px">Link 7 gün geçerli. Defterden istediğin an çıkarabilirsin.</p>
+</div>
+</div>
+
+<!-- 2 · Partner linke tıkladı -->
+<div class="phone"><div class="scroll" style="text-align:center">
+  <div class="avs" style="justify-content:center;margin-top:40px"><span class="av a" style="width:56px;height:56px;font-size:20px">A</span></div>
+  <p class="sub" style="margin-top:10px">Ahmet seni davet etti</p>
+  <div class="card d3" style="--c:#fffdf7;margin-top:46px;min-height:170px;text-align:left">
+    <img class="art stk" src="assets/cift_04.png" alt="" style="right:-8px;top:-40px;height:200px">
+    <span class="k" style="position:relative;z-index:2;max-width:55%">21 ANI · OCAK 2025’TEN BERİ</span>
+    <span class="hand" style="font-size:42px">Sevgilimle</span>
+  </div>
+  <p class="hand" style="font-size:36px;margin-top:40px">Birlikte doldurun</p>
+  <p class="sub" style="margin-top:8px;line-height:1.45">Kayıt yok. Katıl, 21 anıyı gör, ilk anını ekle.</p>
+</div>
+<div class="foot"><button class="btn">Deftere katıl</button><p class="sub" style="text-align:center;font-size:12px">3 fırça hediye seni de bekliyor.</p></div>
+</div>
+
+<!-- 3 · Ortak defter -->
+<div class="phone"><div class="scroll">
+  <div class="row sp"><button class="ib d3s" aria-label="Geri"><svg data-i="back"></svg></button><div class="avs"><span class="av a">A</span><span class="av e">E</span></div></div>
+  <p class="hand" style="font-size:44px;margin-top:16px">Sevgilimle</p>
+  <p class="sub">Ahmet ve Elif · 23 anı</p>
+  <div class="card d3" style="--c:#fffdf7;margin-top:18px;padding:12px 14px;justify-content:flex-start">
+    <div class="feed"><img class="stk" src="assets/cift_05.png" alt=""><div style="flex:1"><p class="k" style="color:var(--red);opacity:1">ELİF EKLEDİ · 2 SAAT ÖNCE</p><p class="t-note" style="margin-top:2px">Bebeğe ilk hırka bitti.</p></div></div>
+  </div>
+  <div class="row sp" style="margin:22px 0 12px"><p class="t-sec" style="font-size:24px">Ekim 2026</p><span class="sub">10 / 31 gün</span></div>
+  <div class="cal" data-month='{"15":"cift_05","9":"cift_06"}'></div>
+</div>
+<nav class="bar"><button class="tb on"><svg data-i="nb"></svg>Defterler</button><button class="add"><svg data-i="plus"></svg>Anı ekle</button><button class="tb"><svg data-i="cal"></svg>Takvim</button></nav>
+</div>
+<script src="shared.js"></script>
+<script>
+// Kim ekledi rozeti
+const BY={3:'A',7:'E',9:'E',12:'A',15:'E',18:'A',21:'E',24:'A',25:'A'};
+document.querySelectorAll('.phone:last-of-type .cal span').forEach(s=>{const d=+s.textContent;if(BY[d]&&s.classList.contains('has')){s.classList.add('by');s.dataset.by=BY[d]}});
+</script>
+</body></html>

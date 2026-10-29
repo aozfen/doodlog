@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · İzin ve hata</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="a.css"><link rel="stylesheet" href="a2.css"><link rel="stylesheet" href="a-ui.css">
+<style>
+.ico{width:72px;height:72px;border-radius:50%;margin:0 auto;display:grid;place-items:center;background:#efebe3;color:var(--ink)}
+.ico svg{width:32px;height:32px}
+.note{display:flex;align-items:center;gap:10px;background:#fffdf7;border:1.5px solid #ebe5d9;border-radius:16px;padding:12px 14px;font-weight:700;font-size:13px;line-height:1.4;text-align:left}
+.note svg{width:18px;height:18px;flex:none;color:var(--red)}
+.note span{flex:1}
+.note b{color:var(--red);white-space:nowrap}
+.pic{position:relative;width:200px;height:200px;margin:0 auto;border-radius:28px;overflow:hidden}
+.pic img{width:100%;height:100%;object-fit:cover;filter:grayscale(.5);opacity:.6}
+.pic i{position:absolute;inset:0;display:grid;place-items:center}
+.pic i span{width:60px;height:60px;border-radius:50%;background:#fffdf7;display:grid;place-items:center;box-shadow:0 3px 0 #ddd5c6}
+.pic i svg{width:28px;height:28px}
+.list{background:#fffdf7;border:1.5px solid #ebe5d9;border-radius:20px;overflow:hidden}
+.rw{display:flex;align-items:center;gap:12px;min-height:54px;padding:10px 16px;font-weight:700;font-size:15px}
+.rw+.rw{border-top:1.5px solid #ebe5d9}
+.rw>span{flex:1}
+.rw small{display:block;font-size:12px;font-weight:700;opacity:.55}
+.tg{width:48px;height:28px;border-radius:14px;background:#ddd5c6;position:relative;flex:none;opacity:.5}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff}
+.k{display:block}
+</style></head><body>
+<p class="cap">İzin ve hata durumları. Kural: suçlama yok, fırça hiçbir hatada boşa gitmez, her ekranda tek net çıkış.</p>
+
+<!-- 1 · Fotoğraf izni yok -->
+<div class="phone"><div class="scroll">
+  <div class="row sp"><p class="hand" style="font-size:38px">Merhaba Ahmet</p><span class="chip row d3s" style="gap:5px"><svg data-i="brush"></svg>12</span></div>
+</div>
+<div class="dim"></div>
+<div class="sheet" style="text-align:center">
+  <div class="grab"></div>
+  <div class="ico"><svg data-i="img"></svg></div>
+  <p class="t-sec" style="font-size:22px;margin-top:16px">Fotoğraflarını göremiyorum</p>
+  <p class="sub" style="margin-top:8px;line-height:1.45">Anı eklemek için galerine erişim lazım. Fotoğrafların sadece çizim için kullanılır, saklanmaz.</p>
+  <button class="btn" style="margin-top:22px">Ayarlarda izin ver</button>
+  <button class="btn2" style="margin-top:12px;height:48px">Sadece bir fotoğraf seç</button>
+  <p class="sub" style="margin-top:12px;font-size:12px">Tek fotoğraf seçersen "Tekrar çiz" için onu yeniden seçmen gerekir.</p>
+</div>
+</div>
+
+<!-- 2 · Sınırlı erişim (iOS) -->
+<div class="phone"><div class="scroll">
+  <div class="row sp"><p class="hand" style="font-size:38px">Merhaba Ahmet</p><span class="chip row d3s" style="gap:5px"><svg data-i="brush"></svg>12</span></div>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div class="row sp"><p class="t-sec">Seçtiğin fotoğraflar</p><span class="sub">3 fotoğraf</span></div>
+  <div class="note" style="margin-top:12px"><svg data-i="img"></svg><span>Sadece izin verdiğin fotoğrafları görüyorum.</span><b>Daha fazla seç</b></div>
+  <div class="grid3" style="margin-top:12px">
+    <button class="sel" aria-label="Fotoğraf 1, seçili"><img src="assets/p_cift_02.jpg" alt=""></button>
+    <button aria-label="Fotoğraf 2"><img src="assets/p_cift_05.jpg" alt=""></button>
+    <button aria-label="Fotoğraf 3"><img src="assets/p_me_01.jpg" alt=""></button>
+  </div>
+  <button class="btn2" style="margin-top:16px;height:48px">Tüm fotoğraflara izin ver</button>
+  <button class="btn" style="margin-top:14px"><svg data-i="brush"></svg>Çiz · 1 fırça</button>
+</div>
+</div>
+
+<!-- 3 · İnternet yok -->
+<div class="phone"><div class="scroll">
+  <div class="top"><button class="ib d3s" aria-label="Kapat"><svg data-i="x"></svg></button><span class="chip row d3s" style="gap:5px"><svg data-i="brush"></svg>12</span></div>
+  <div class="pic" style="margin-top:70px"><img src="assets/p_cift_01.jpg" alt=""><i><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M5 12.5a10 10 0 0 1 4-2.3M14.5 10.2a10 10 0 0 1 4.5 2.3"/><path d="M2 8.8a15 15 0 0 1 4.3-2.7M10 5.1a15 15 0 0 1 12 3.7"/><circle cx="12" cy="20" r=".6"/></svg></span></i></div>
+  <p class="hand" style="font-size:40px;text-align:center;margin-top:34px">İnternet yok</p>
+  <p class="sub" style="text-align:center;margin-top:8px;line-height:1.45">Fırçan harcanmadı. Bağlantı gelince<br>kendiliğinden çizilir, sana haber veririz.</p>
+</div>
+<div class="foot"><button class="btn">Tamam</button><button class="btn2" style="height:48px"><svg data-i="redo"></svg>Şimdi tekrar dene</button></div>
+</div>
+
+<!-- 4 · Bekleyen çizim (ana sayfa) -->
+<div class="phone"><div class="scroll">
+  <div class="row sp"><p class="hand" style="font-size:38px">Merhaba Ahmet</p><span class="chip row d3s" style="gap:5px"><svg data-i="brush"></svg>12</span></div>
+  <p class="sub" style="margin-top:4px">Pazar, 25 Ekim</p>
+  <div class="flat" style="display:flex;align-items:center;gap:14px;margin-top:24px;padding:12px;border-radius:22px">
+    <img src="assets/p_cift_01.jpg" alt="" style="width:64px;height:64px;border-radius:16px;object-fit:cover;filter:grayscale(.5);opacity:.7">
+    <span style="flex:1"><b style="font-size:15px">Çizilmeyi bekliyor</b><br><span class="sub">Sevgilimle · bağlantı gelince başlar</span></span>
+    <button class="ib d3s" aria-label="Şimdi dene"><svg data-i="redo"></svg></button>
+  </div>
+  <p class="k" style="margin:26px 0 10px">DEFTERLERİN</p>
+  <div class="books" style="margin-top:0">
+    <a class="bk d3" href="#" style="--c:#fffdf7"><b>Sevgilimle</b><small>21 anı</small><img class="stk" src="assets/cift_02.png" alt=""></a>
+    <a class="bk d3" href="#" style="--c:#fffdf7"><b>Fıstık</b><small>8 anı</small><img class="stk" src="assets/cut_kopek.png" alt=""></a>
+  </div>
+</div>
+<nav class="bar"><button class="tb on"><svg data-i="nb"></svg>Defterler</button><button class="add"><svg data-i="plus"></svg>Anı ekle</button><button class="tb"><svg data-i="cal"></svg>Takvim</button></nav>
+</div>
+
+<!-- 5 · Tekrar çiz: orijinal bulunamadı -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:38px;margin-top:58px;opacity:.5">25 Ekim</p>
+  <div class="card flat" style="margin-top:18px;height:300px;align-items:center;justify-content:center;opacity:.5"><img class="stk" src="assets/cift_01.png" alt="" style="width:260px"></div>
+</div>
+<div class="dim"></div>
+<div class="sheet" style="text-align:center">
+  <div class="grab"></div>
+  <div class="ico"><svg data-i="img"></svg></div>
+  <p class="t-sec" style="font-size:22px;margin-top:16px">Orijinal fotoğraf bulunamadı</p>
+  <p class="sub" style="margin-top:8px;line-height:1.45">Galeriden silinmiş olabilir. Aynı fotoğrafı ya da benzerini seçersen bu anıyı yeniden çizerim.</p>
+  <div class="note" style="margin-top:16px;justify-content:center"><svg data-i="brush"></svg><span style="flex:none">Ücretsiz tekrar hakkın duruyor.</span></div>
+  <button class="btn" style="margin-top:18px"><svg data-i="img"></svg>Fotoğraf seç</button>
+  <button class="sub" style="display:block;margin:14px auto 0;height:24px">Vazgeç</button>
+</div>
+</div>
+
+<!-- 6 · Bildirim izni kapalı (ayarlar) -->
+<div class="phone"><div class="scroll">
+  <div class="top"><button class="ib d3s" aria-label="Geri"><svg data-i="back"></svg></button></div>
+  <p class="hand" style="font-size:44px;margin-top:14px">Ayarlar</p>
+  <span class="k" style="margin:24px 4px 8px">HATIRLATMA</span>
+  <div class="note" style="margin-bottom:10px"><svg data-i="chat"></svg><span>Bildirimler kapalı, hatırlatma gelmez.</span><b>Aç</b></div>
+  <div class="list" style="opacity:.6">
+    <div class="rw"><span>Anı hatırlatması</span><i class="tg"></i></div>
+    <div class="rw"><span>Saat</span><span class="sub" style="flex:none">21:00</span></div>
+    <div class="rw"><span>Hedef</span><span class="sub" style="flex:none">Haftada 4 anı</span></div>
+  </div>
+</div></div>
+<script src="shared.js"></script>
+</body></html>

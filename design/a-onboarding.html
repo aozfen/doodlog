@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · İlk açılış</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="a.css"><link rel="stylesheet" href="a2.css"><link rel="stylesheet" href="a-ui.css">
+<style>
+.fl{position:relative;height:380px;margin:0 -20px}
+.fl img{position:absolute}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:26px}
+.opt{display:flex;flex-direction:column;align-items:center;gap:6px;border-radius:22px;padding:14px 10px 12px;font-weight:800;font-size:15px}
+.opt img{height:96px;object-fit:contain}
+.opt.on,.goal.on{box-shadow:inset 0 0 0 2.5px var(--ink),0 5px 0 #2a2733}
+.dots{display:flex;gap:6px;justify-content:center}
+.dots i{width:7px;height:7px;border-radius:4px;background:#d6cfc2}
+.dots i.on{width:22px;background:var(--ink)}
+.ba{position:relative;height:300px}
+.ba .p{position:absolute;left:10px;top:24px;width:170px;height:210px;object-fit:cover;border-radius:20px;transform:rotate(-6deg);border:5px solid #fff;box-shadow:0 5px 0 #e2dbcd}
+.ba .s{position:absolute;right:-6px;top:60px;width:220px}
+.gift{display:inline-flex;align-items:center;gap:6px;background:var(--red);color:#fff;font-weight:800;font-size:13px;padding:6px 12px;border-radius:14px}
+.tip{display:flex;gap:10px;align-items:flex-start;font-size:13px;font-weight:700;line-height:1.4}
+.tip svg{width:18px;height:18px;flex:none;color:var(--red);margin-top:1px}
+/* çizim sürerken: üstte küçük çizim durumu */
+.mini{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:20px}
+.mini .rv{width:64px;height:64px;margin:0}
+.mini .rv .ph0{inset:6px;width:52px;height:52px;border-radius:12px}
+.mini .rv .dr{width:64px}
+.mini .bar2{height:8px;margin-top:6px}
+.goal{display:flex;align-items:center;justify-content:space-between;width:100%;border-radius:20px;padding:16px 18px;font-weight:800;font-size:16px;text-align:left}
+.ben{display:flex;flex-direction:column;gap:12px;margin-top:22px}
+.ben p{display:flex;gap:10px;align-items:center;font-weight:700;font-size:15px}
+.ben svg{width:20px;height:20px;color:var(--red);flex:none}
+.time{font-size:44px;font-weight:800;letter-spacing:-.02em;border-radius:22px;padding:6px 26px;margin:22px auto 0;display:block}
+.nsw{width:100%;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;font:600 13px system-ui;color:#555;align-items:center}
+.nsw button{font:700 13px system-ui;padding:5px 12px;border-radius:14px;background:#fff}
+.nsw button[aria-pressed=true]{background:#c9533a;color:#fff}
+.stages{display:flex;flex-direction:column;gap:12px;margin-top:26px;font-weight:700;font-size:15px}
+.stages p{display:flex;align-items:center;gap:10px;color:#a39d92}
+.stages .ok{color:var(--ink)}.stages .ok svg{width:20px;height:20px;color:var(--red)}
+.stages .now{color:var(--ink)}
+.stages i{width:20px;height:20px;border-radius:50%;border:2.5px solid #d6cfc2}
+.stages .now i{border-color:var(--red) transparent var(--red) var(--red);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.land span.today{animation:glow 1.6s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:inset 0 0 0 2px var(--red),0 0 0 6px rgba(201,83,58,.18),0 3px 0 #8e3426}}
+.land span.today img{animation:land 4.5s cubic-bezier(.2,.9,.3,1.2) infinite}
+@keyframes land{0%,45%{opacity:0;transform:translateY(-90px) scale(2.4) rotate(-8deg)}70%,100%{opacity:1;transform:scale(1.35)}}
+</style></head><body>
+<p class="cap">A · İlk açılış. Defter seçimi sonraki her ekranı değiştirir. İsim ve hedef, çizim sürerken sorulur.</p>
+<div class="nsw">Seçili defter (dene): <button data-set="sev">Sevgilimle</button><button data-set="pet">Evcil hayvan</button><button data-set="ben">Kendim</button><button data-set="ark">Arkadaşlar</button></div>
+
+<!-- 1 · Karşılama -->
+<div class="phone"><div class="scroll">
+  <div class="fl">
+    <img class="stk" src="assets/cift_01.png" alt="" style="width:200px;left:10px;top:10px;transform:rotate(-6deg)">
+    <img class="stk" src="assets/cut_kopek.png" alt="" style="width:130px;right:24px;top:30px;transform:rotate(8deg)">
+    <img class="stk" src="assets/me_05.png" alt="" style="width:170px;right:10px;top:180px;transform:rotate(-4deg)">
+    <img class="stk" src="assets/me_01.png" alt="" style="width:130px;left:30px;top:210px;transform:rotate(5deg)">
+  </div>
+  <p class="hand" style="font-size:48px;text-align:center">Anıların, çizim olarak</p>
+  <p class="sub" style="text-align:center;margin-top:10px;font-size:15px;line-height:1.45">Bir fotoğraf seç, gerisini biz çizelim.<br>Hepsi kendi takviminde birikir.</p>
+</div>
+<div class="foot"><button class="btn">Başla</button><button class="sub" style="font-size:13px">Zaten hesabın var mı? Giriş yap</button></div>
+</div>
+
+<!-- 2 · İlk defter -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:42px;margin-top:10px">İlk defterin kimin için?</p>
+  <p class="sub" style="margin-top:8px">Sonra istediğin kadar defter açabilirsin.</p>
+  <div class="opts">
+    <button class="opt d3" data-set="sev" style="--c:#fffdf7"><img class="stk" src="assets/cift_02.png" alt="">Sevgilimle</button>
+    <button class="opt d3" data-set="pet" style="--c:#fffdf7"><img class="stk" src="assets/cut_kopek.png" alt="">Evcil hayvanım</button>
+    <button class="opt d3" data-set="ben" style="--c:#fffdf7"><img class="stk" src="assets/me_01.png" alt="">Kendim</button>
+    <button class="opt d3" data-set="ark" style="--c:#fffdf7"><img class="stk" src="assets/me_05.png" alt="">Arkadaşlarım</button>
+  </div>
+  <p class="k" style="margin-top:22px">DEFTERİN ADI</p>
+  <label class="field" style="margin-top:8px"><input data-v="def" aria-label="Defter adı"></label>
+  <p class="sub" style="margin-top:8px;font-size:12px">İstersen değiştir. Başka bir şey için kendi adını yaz.</p>
+</div>
+<div class="foot"><button class="btn">Devam</button></div>
+</div>
+
+<!-- 3 · İlk fotoğraf (kişisel) -->
+<div class="phone"><div class="scroll">
+  <span class="gift" style="margin-top:6px"><svg data-i="brush" style="width:15px;height:15px"></svg>3 fırça hediye</span>
+  <p class="hand" style="font-size:44px;margin-top:14px">İlk anını çizelim</p>
+  <p class="sub" style="margin-top:8px;font-size:15px;line-height:1.45" data-t="ask"></p>
+  <div class="ba"><img class="p" data-src="ph" alt="Örnek fotoğraf"><img class="s stk" data-src="dr" alt="Örnek çizim"></div>
+  <div class="tip"><svg data-i="check"></svg><span data-t="tip"></span></div>
+</div>
+<div class="foot"><button class="btn"><svg data-i="img"></svg>Fotoğraf seç</button><p class="sub" style="text-align:center;font-size:12px">Sadece seçtiğin fotoğrafı görürüz.</p></div>
+</div>
+
+<!-- 4 · Çizilirken: isim -->
+<div class="phone"><div class="scroll">
+  <div class="mini d3s" style="--c:#fffdf7"><div class="rv"><img class="ph0" data-src="ph" alt=""><img class="dr" data-src="dr" alt=""></div><div style="flex:1"><b>Çiziliyor…</b><div class="bar2"><i></i></div></div></div>
+  <p class="hand" style="font-size:42px;margin-top:40px">Bu arada, sana nasıl hitap edelim?</p>
+  <label class="field" style="margin-top:24px;min-height:60px;font-size:20px"><input value="Ahmet" aria-label="Adın"></label>
+  <p class="sub" style="margin-top:10px">Sadece selamlamada kullanırız.</p>
+</div>
+<div class="foot"><button class="btn">Devam</button><button class="sub" style="font-size:13px">Atla</button></div>
+</div>
+
+<!-- 5 · Çizilirken: hedef -->
+<div class="phone"><div class="scroll">
+  <div class="mini d3s" style="--c:#fffdf7"><div class="rv"><img class="ph0" data-src="ph" alt=""><img class="dr" data-src="dr" alt=""></div><div style="flex:1"><b>Neredeyse bitti…</b><div class="bar2"><i></i></div></div></div>
+  <p class="hand" style="font-size:42px;margin-top:40px" data-t="goalq"></p>
+  <div style="display:flex;flex-direction:column;gap:14px;margin-top:22px">
+    <button class="goal d3" style="--c:#fffdf7">Haftada 1<span class="sub">rahat</span></button>
+    <button class="goal d3 on" style="--c:#fffdf7">Haftada 3<span class="sub">dengeli</span></button>
+    <button class="goal d3" style="--c:#fffdf7">Her gün<span class="sub">günlük gibi</span></button>
+  </div>
+  <p class="sub" style="margin-top:14px;font-size:12px">Hatırlatmaları buna göre ayarlarız. Sonra değiştirebilirsin.</p>
+</div>
+<div class="foot"><button class="btn">Devam</button></div>
+</div>
+
+<!-- 6 · Çizilirken: hatırlatma (çizim hazırsa en sona kayar) -->
+<div class="phone"><div class="scroll" style="text-align:center">
+  <div class="mini d3s" style="--c:#fffdf7"><div class="rv"><img class="ph0" data-src="ph" alt=""><img class="dr" data-src="dr" alt=""></div><div style="flex:1"><b>Çizgiler atılıyor…</b><div class="bar2"><i></i></div></div></div>
+  <p class="hand" style="font-size:44px;margin-top:60px">Akşam hatırlatalım mı?</p>
+  <p class="sub" style="margin-top:10px;font-size:14px;line-height:1.45">Haftada 3 hedefin için:<br>Pazartesi, Çarşamba, Pazar</p>
+  <button class="time d3s" style="--c:#fffdf7">21:00</button>
+  <p class="sub" style="margin-top:12px;font-size:12px">Saate dokun, değiştir</p>
+</div>
+<div class="foot"><button class="btn">Hatırlat</button><button class="btn2" style="height:48px">Gerek yok</button></div>
+</div>
+
+<!-- 7 · Çizilirken: takvim önizleme -->
+<div class="phone"><div class="scroll">
+  <p class="k"><span data-t="def"></span> · EKİM 2026</p>
+  <p class="hand" style="font-size:40px;margin-top:6px">İlk anın buraya gelecek</p>
+  <div class="cal land" data-month data-only='{"25":"cift_02"}' style="margin-top:22px"></div>
+  <div class="stages">
+    <p class="ok"><svg data-i="check"></svg>Yüzler eşleştirildi</p>
+    <p class="now"><i></i>Çizgiler atılıyor…</p>
+    <p><i></i>Renkler veriliyor</p>
+  </div>
+</div></div>
+
+<!-- 8 · Hazır: kapak + paylaş -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:40px;text-align:center">İlk anın hazır</p>
+  <div class="card d3 pop" style="--c:#fffdf7;margin-top:16px;height:300px;align-items:center;justify-content:center"><img class="stk" data-src="dr" alt="İlk çizim" style="width:260px"></div>
+  <div class="card flat" style="margin-top:20px;justify-content:flex-start;flex-direction:row;align-items:center;gap:12px;padding:12px 14px">
+    <svg data-i="nb" style="width:22px;height:22px;flex:none;color:var(--red)"></svg>
+    <span class="sub" style="opacity:1;font-size:13px"><b data-t="def"></b> defterinin kapağı oldu.</span>
+  </div>
+</div>
+<div class="foot"><button class="btn"><svg data-i="check"></svg>Kaydet</button><button class="btn2" style="height:48px"><svg data-i="share"></svg>Hikayende paylaş</button></div>
+</div>
+
+<!-- 9 · Plan teklifi -->
+<div class="phone"><div class="scroll">
+  <div class="top"><span></span><button class="ib d3s" aria-label="Kapat"><svg data-i="x"></svg></button></div>
+  <img class="stk" data-src="dr" alt="" style="width:170px;margin:0 auto">
+  <p class="hand" style="font-size:42px;text-align:center;margin-top:8px" data-t="pay"></p>
+  <div class="ben">
+    <p><svg data-i="brush"></svg>Ayda 50 çizim</p>
+    <p><svg data-i="share"></svg>Filigransız paylaşım</p>
+    <p><svg data-i="check"></svg>İstediğin an iptal</p>
+  </div>
+</div>
+<div class="foot"><p class="sub" style="text-align:center;font-size:13px">Yıllık $59,99 (ayda $5) · <u>Aylık $7,99</u></p><button class="btn">Yıllık planı başlat</button><button class="sub" style="font-size:14px;opacity:.8">Kalan 2 fırçayla devam et</button></div>
+</div>
+
+<p class="cap" style="margin-top:20px">Aksilikler: 30 saniyeyi geçerse ve çizim olmazsa.</p>
+
+<!-- 10 · 30 sn geçti -->
+<div class="phone"><div class="scroll">
+  <div class="mini d3s" style="--c:#fffdf7"><div class="rv"><img class="ph0" data-src="ph" alt=""><img class="dr" data-src="dr" alt=""></div><div style="flex:1"><b>Hâlâ çiziliyor…</b><div class="bar2"><i></i></div></div></div>
+  <p class="hand" style="font-size:44px;margin-top:70px">Biraz uzun sürüyor</p>
+  <p class="sub" style="margin-top:10px;font-size:15px;line-height:1.45">Çizimini özenle yapıyoruz. Beklemek zorunda değilsin, bitince haber vereceğiz.</p>
+</div>
+<div class="foot"><button class="btn">Ana sayfaya geç</button><button class="btn2" style="height:48px">Burada bekle</button></div>
+</div>
+
+<!-- 11 · Ana sayfa: arka planda çiziliyor -->
+<div class="phone"><div class="scroll">
+  <div class="row sp"><p class="hand" style="font-size:38px">Merhaba Ahmet</p><span class="chip row d3s" style="gap:5px"><svg data-i="brush"></svg>2</span></div>
+  <p class="sub" style="margin-top:4px">Pazar, 25 Ekim</p>
+  <div class="card d3" style="--c:#fffdf7;margin-top:22px;align-items:center;text-align:center;padding:22px 20px">
+    <div class="rv" style="width:200px;height:200px"><img class="ph0" data-src="ph" alt="" style="inset:20px;width:160px;height:160px"><img class="dr" data-src="dr" alt="" style="width:200px"></div>
+    <span class="k" style="color:var(--red);opacity:1;margin-top:10px">BUGÜN · ÇİZİLİYOR</span>
+    <span class="t-note">Bitince burada olacak, bildirim de göndereceğiz.</span>
+  </div>
+  <p class="t-sec" style="margin-top:28px">Defterlerim</p>
+  <div class="books"><a class="bk d3" href="#" style="--c:#fffdf7"><b data-t="def"></b><small>ilk anı yolda</small><span class="ph" style="margin:auto"><svg data-i="brush"></svg></span></a></div>
+</div>
+<nav class="bar"><button class="tb on"><svg data-i="nb"></svg>Defterler</button><button class="add"><svg data-i="plus"></svg>Anı ekle</button><button class="tb"><svg data-i="cal"></svg>Takvim</button></nav>
+</div>
+
+<!-- 12 · Çizim olmadı -->
+<div class="phone"><div class="scroll">
+  <div class="top"><span></span><span class="chip row d3s" style="gap:5px"><svg data-i="brush"></svg>11</span></div>
+  <div style="position:relative;width:170px;margin:30px auto 0"><img data-src="ph" alt="" style="width:170px;height:200px;object-fit:cover;border-radius:20px;transform:rotate(-4deg);border:5px solid #fff;box-shadow:0 5px 0 #e2dbcd;opacity:.6"><span class="gift" style="position:absolute;right:-30px;bottom:-12px">Fırçan iade edildi</span></div>
+  <p class="hand" style="font-size:44px;text-align:center;margin-top:30px">Bu sefer olmadı</p>
+  <p class="sub" style="text-align:center;margin-top:8px;font-size:14px;line-height:1.45">Çizim yarıda kaldı, bazen oluyor.<br>Aynı fotoğrafla bir daha deneyebilirsin.</p>
+</div>
+<div class="foot"><button class="btn"><svg data-i="redo"></svg>Tekrar dene</button><button class="btn2" style="height:48px"><svg data-i="img"></svg>Başka fotoğraf seç</button></div>
+</div>
+<script src="shared.js"></script>
+<script>
+// Nişe göre içerik. Gerçek uygulamada da bu tablo olur.
+const N={
+ sev:{def:'Sevgilimle',ph:'p_cift_02.jpg',dr:'cift_02.png',ask:'Sevgilinle bir fotoğraf seç. Birkaç saniyede çizime dönüşür.',tip:'El ele, sarılırken, her an olur. Net kareler daha güzel çizilir.',goalq:'İlişkinizi ne sıklıkla kaydetmek istersin?',pay:'Birlikte her anınız çizilsin'},
+ pet:{def:'Fıstık',ph:'p_cift_08.jpg',dr:'cift_08.png',ask:'Patili dostunun bir fotoğrafını seç. Tüyleri, renkleri korunur.',tip:'Uyurken, koşarken, her hali olur. Net kareler daha güzel çizilir.',goalq:'Onun anılarını ne sıklıkla eklemek istersin?',pay:'Büyüdüğü her anı çizilsin'},
+ ben:{def:'Kendim',ph:'p_me_01.jpg',dr:'me_01.png',ask:'Kendinden bir kare seç. Günlüğün çizimle başlasın.',tip:'Selfie de olur, manzara da. Net kareler daha güzel çizilir.',goalq:'Kendine ne sıklıkla not düşmek istersin?',pay:'Günlüğün her gün bir çizim'},
+ ark:{def:'Arkadaşlarım',ph:'p_me_05.jpg',dr:'me_05.png',ask:'Arkadaşlarınla bir fotoğraf seç. Herkes tanınır kalır.',tip:'Kalabalık kareler de olur. Net kareler daha güzel çizilir.',goalq:'Ekibin anılarını ne sıklıkla eklemek istersin?',pay:'Ekibin her buluşması çizilsin'}};
+function set(k){const n=N[k];
+ document.querySelectorAll('[data-t]').forEach(e=>e.textContent=n[e.dataset.t]);
+ document.querySelectorAll('[data-src]').forEach(e=>e.src='assets/'+n[e.dataset.src]);
+ document.querySelectorAll('.land .today img').forEach(e=>e.src='assets/'+n.dr);
+ document.querySelectorAll('[data-v]').forEach(e=>e.value=n[e.dataset.v]);
+ document.querySelectorAll('[data-set]').forEach(b=>{const on=b.dataset.set==k;b.classList.toggle('on',on&&b.classList.contains('opt'));if(!b.classList.contains('opt'))b.setAttribute('aria-pressed',on)});
+}
+document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>set(b.dataset.set));
+set('sev');
+</script>
+</body></html>

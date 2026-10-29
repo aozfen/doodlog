@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · Defter ayarları</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="a.css"><link rel="stylesheet" href="a2.css"><link rel="stylesheet" href="a-ui.css">
+<style>
+.list{background:#fffdf7;border:1.5px solid #ebe5d9;border-radius:20px;overflow:hidden}
+.mi{display:flex;align-items:center;gap:14px;width:100%;min-height:54px;padding:10px 16px;text-align:left;font-weight:700;font-size:15px}
+.mi+.mi{border-top:1.5px solid #ebe5d9}
+.mi>span{flex:1}
+.mi small{display:block;font-size:12px;font-weight:700;opacity:.55}
+.mi>svg{width:20px;height:20px;flex:none;opacity:.65}
+.mi.red{color:var(--red)}.mi.red>svg{opacity:1}
+.mi .rd{width:24px;height:24px;border-radius:50%;border:2px solid #cfc8bb;flex:none;display:grid;place-items:center}
+.mi.on .rd{background:var(--ink);border-color:var(--ink);color:#fff}
+.mi.on .rd svg{width:14px;height:14px}
+.mi.on{box-shadow:inset 0 0 0 2px var(--ink);border-radius:18px}
+.btnr{display:flex;align-items:center;justify-content:center;width:100%;height:56px;border-radius:28px;font-weight:800;font-size:16px;color:#fff;background:linear-gradient(180deg,#d8664d,#c9533a);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 5px 0 #8e3426}
+.toast{position:absolute;left:20px;right:20px;bottom:120px;z-index:8;display:flex;align-items:center;gap:10px;background:#2a2733;color:#fff;border-radius:18px;padding:14px 16px;font-weight:700;font-size:14px}
+.toast span{flex:1}.toast b{color:#f0a493}
+.kb{position:absolute;left:0;right:0;bottom:0;height:300px;background:#d3d0d8;z-index:9;display:flex;align-items:center;justify-content:center;font:700 13px system-ui;color:#777}
+.cover{width:150px;height:170px;margin:0 auto}
+.grid3 .sel::after{display:none}
+</style></head><body>
+<p class="cap">Defter ayarları: defter sayfasındaki ⋯ butonu. Defter silinirken anılar kaybolmasın diye önce taşıma önerilir.</p>
+
+<!-- 1 · Defter menüsü -->
+<div class="phone"><div class="scroll">
+  <div class="row sp" style="opacity:.5"><button class="ib d3s" aria-label="Geri"><svg data-i="back"></svg></button><button class="ib d3s" aria-label="Diğer"><svg data-i="more"></svg></button></div>
+  <p class="hand" style="font-size:44px;margin-top:16px;opacity:.5">Sevgilimle</p>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div class="list">
+    <button class="mi"><svg data-i="chat"></svg><span>Adını değiştir<small>Sevgilimle</small></span></button>
+    <button class="mi"><svg data-i="img"></svg><span>Kapağı değiştir</span></button>
+    <button class="mi"><svg data-i="share"></svg><span>Defteri paylaş<small>Yıl özeti ya da kolaj</small></span></button>
+  </div>
+  <div class="list" style="margin-top:12px"><button class="mi red"><svg data-i="x"></svg><span>Defteri sil</span></button></div>
+</div>
+</div>
+
+<!-- 2 · Adını değiştir -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:44px;margin-top:74px;opacity:.5">Sevgilimle</p>
+</div>
+<div class="dim"></div>
+<div class="sheet" style="bottom:300px;border-radius:32px">
+  <div class="grab"></div>
+  <p class="t-sec" style="text-align:center">Defterin adı</p>
+  <div class="field" style="margin-top:16px;border-color:#2a2733"><input value="Elif'le biz|" aria-label="Defter adı"><svg data-i="x"></svg></div>
+  <button class="btn" style="margin-top:16px">Kaydet</button>
+</div>
+<div class="kb">klavye</div>
+</div>
+
+<!-- 3 · Kapağı değiştir -->
+<div class="phone"><div class="scroll">
+  <div class="top"><button class="sub" style="opacity:.7">Vazgeç</button><button style="font-weight:800;color:var(--red)">Kaydet</button></div>
+  <p class="t-sec" style="text-align:center;margin-top:14px">Kapak</p>
+  <a class="bk d3 cover pop" style="--c:#fffdf7;--s:#d58f82;margin-top:16px;display:flex"><b>Sevgilimle</b><small>21 anı</small><img class="stk" src="assets/cift_05.png" alt=""></a>
+  <p class="k" style="margin:28px 0 10px">BU DEFTERİN ÇİZİMLERİ</p>
+  <div class="grid3">
+    <button style="background:#fffdf7"><img class="stk" src="assets/cift_01.png" alt="" style="object-fit:contain;padding:6px"></button>
+    <button style="background:#fffdf7"><img class="stk" src="assets/cift_02.png" alt="" style="object-fit:contain;padding:6px"></button>
+    <button style="background:#fffdf7"><img class="stk" src="assets/cift_03.png" alt="" style="object-fit:contain;padding:6px"></button>
+    <button style="background:#fffdf7"><img class="stk" src="assets/cift_04.png" alt="" style="object-fit:contain;padding:6px"></button>
+    <button class="sel" style="background:#fffdf7"><img class="stk" src="assets/cift_05.png" alt="" style="object-fit:contain;padding:6px"></button>
+    <button style="background:#fffdf7"><img class="stk" src="assets/cift_06.png" alt="" style="object-fit:contain;padding:6px"></button>
+  </div>
+</div></div>
+
+<!-- 4 · Defteri sil: anılar ne olsun -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:44px;margin-top:74px;opacity:.5">Sevgilimle</p>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <p class="t-sec" style="font-size:24px;text-align:center">Sevgilimle silinsin mi?</p>
+  <p class="sub" style="text-align:center;margin-top:8px">İçinde 21 anı var. Bunlar ne olsun?</p>
+  <div class="list" style="margin-top:18px;padding:4px">
+    <button class="mi on"><i class="rd"><svg data-i="check"></svg></i><span>Başka deftere taşı<small>Kendim · anılar ve çizimler kalır</small></span></button>
+    <button class="mi" style="border-top:0"><i class="rd"></i><span>Anılarla birlikte sil<small>21 çizim ve not bu telefondan silinir</small></span></button>
+  </div>
+  <button class="btnr" style="margin-top:22px">Defteri sil</button>
+  <button class="sub" style="display:block;margin:14px auto 0;height:24px">Vazgeç</button>
+</div>
+</div>
+
+<!-- 5 · Silindi: geri al -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:40px">Merhaba Ahmet</p>
+  <div class="books" style="margin-top:22px">
+    <a class="bk d3" href="#" style="--c:#fffdf7;--s:#8ea6c4"><b>Fıstık</b><small>12 gündür boş</small><img class="stk" src="assets/cut_kopek.png" alt=""></a>
+    <a class="bk d3" href="#" style="--c:#fffdf7;--s:#9db383"><b>Kendim</b><small>25 anı</small><img class="stk" src="assets/me_01.png" alt=""></a>
+    <button class="bk new"><svg data-i="plus" style="width:30px;height:30px"></svg><span class="t-note">Yeni defter</span></button>
+  </div>
+</div>
+<div class="toast"><span>Sevgilimle silindi. 21 anı Kendim'e taşındı.</span><b>Geri al</b></div>
+<nav class="bar"><button class="tb on"><svg data-i="nb"></svg>Defterler</button><button class="add"><svg data-i="plus"></svg>Anı ekle</button><button class="tb"><svg data-i="cal"></svg>Takvim</button></nav>
+</div>
+<script src="shared.js"></script>
+</body></html>

@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · Anı ekle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="a.css"><link rel="stylesheet" href="a2.css"><link rel="stylesheet" href="a-ui.css">
+</head><body>
+<p class="cap">A · Anı ekle: fotoğraf seç → çiziliyor → hazır. Soru yok, her şey önceden dolu.</p>
+
+<!-- 1 · Fotoğraf seç -->
+<div class="phone"><div class="scroll">
+  <div class="row sp"><p class="hand" style="font-size:38px">Merhaba Ahmet</p><span class="chip row d3s" style="gap:5px"><svg data-i="brush"></svg>12</span></div>
+  <p class="sub" style="margin-top:4px">Pazar, 25 Ekim</p>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <div class="row sp"><p class="t-sec">Bugün çektiklerin</p><span class="sub">6 fotoğraf</span></div>
+  <div class="grid3" style="margin-top:14px">
+    <button class="sel" aria-label="Fotoğraf 1, seçili"><img src="assets/p_cift_01.jpg" alt=""></button>
+    <button aria-label="Fotoğraf 2"><img src="assets/p_cift_02.jpg" alt=""></button>
+    <button aria-label="Fotoğraf 3"><img src="assets/p_cift_04.jpg" alt=""></button>
+    <button aria-label="Fotoğraf 4"><img src="assets/p_cift_05.jpg" alt=""></button>
+    <button aria-label="Fotoğraf 5"><img src="assets/p_cift_06.jpg" alt=""></button>
+    <button aria-label="Fotoğraf 6"><img src="assets/p_cift_08.jpg" alt=""></button>
+  </div>
+  <button class="btn2" style="margin-top:16px;height:48px"><svg data-i="img"></svg>Tüm fotoğraflar</button>
+  <button class="btn" style="margin-top:14px"><svg data-i="brush"></svg>Çiz · 1 fırça</button>
+</div>
+</div>
+
+<!-- 2 · Çiziliyor -->
+<div class="phone"><div class="scroll">
+  <div class="top"><button class="ib d3s" aria-label="Kapat"><svg data-i="x"></svg></button><span class="chip row d3s" style="gap:5px"><svg data-i="brush"></svg>11</span></div>
+  <div class="rv" style="margin-top:70px"><img class="ph0" src="assets/p_cift_01.jpg" alt=""><img class="dr stk" src="assets/cift_01.png" alt="Çizim beliriyor"></div>
+  <p class="hand" style="font-size:40px;text-align:center;margin-top:36px">Çiziliyor…</p>
+  <p class="sub" style="text-align:center;margin-top:8px">Sevgilimle defterindeki yüzlere bakılıyor</p>
+  <div class="bar2" style="margin:28px 30px 0"><i></i></div>
+  <p class="sub" style="text-align:center;margin-top:14px;font-size:12px">Kapatabilirsin, bitince haber veririz.</p>
+</div></div>
+
+<!-- 3 · Hazır -->
+<div class="phone"><div class="scroll">
+  <div class="top"><button class="ib d3s" aria-label="Kapat"><svg data-i="x"></svg></button><p class="hand" style="font-size:34px">Hazır</p><button class="ib d3s" aria-label="Tekrar çiz"><svg data-i="redo"></svg></button></div>
+  <div class="card d3 pop" style="--c:#fffdf7;margin-top:22px;height:300px;align-items:center;justify-content:center"><img class="stk" src="assets/cift_01.png" alt="Sandviç uzatıp öpen adam ve hamile kadın" style="width:270px"></div>
+  <div class="tags" style="margin-top:22px">
+    <span class="tag d3s"><svg data-i="cal" style="width:16px;height:16px"></svg>25 Ekim</span>
+    <button class="tag on">Sevgilimle</button><button class="tag d3s">Fıstık</button><button class="tag d3s">Kendim</button>
+  </div>
+  <label class="field" style="margin-top:16px"><svg data-i="chat"></svg><input placeholder="Bir not ekle (isteğe bağlı)" aria-label="Not"></label>
+</div>
+<div class="foot"><button class="btn"><svg data-i="check"></svg>Kaydet</button><p class="sub" style="text-align:center;font-size:12px">Beğenmedin mi? Sağ üstten tekrar çiz, 1 fırça.</p></div>
+</div>
+<script src="shared.js"></script>
+</body></html>

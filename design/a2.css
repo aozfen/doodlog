@@ -1,0 +1,14 @@
+/* v2: renk azaltıldı, sol sırt yok. Yüzeyler nötr, tek vurgu kırmızı. */
+.d3{--edge:#e2dbcd;background:linear-gradient(180deg,#fff,var(--c));box-shadow:inset 0 1.5px 0 #fff,0 5px 0 var(--edge)}
+.bk.d3{box-shadow:inset 0 1.5px 0 #fff,0 5px 0 var(--edge);border-radius:18px;padding:12px}
+.d3:active,.bk.d3:active{box-shadow:inset 0 1.5px 0 #fff,0 2px 0 var(--edge)}
+/* basılamayan bilgi kartı: düz */
+.flat{background:#fffdf7;border:1.5px solid #ebe5d9}
+.pill{background:#f1ece3}
+.k.yr{color:var(--red);opacity:1}
+/* yazı: el yazısı sadece ekran başlığında (Merhaba, defter adı). Gerisi Nunito. */
+.t-sec{font-size:20px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+.t-note{font-size:16px;font-weight:700;line-height:1.35;margin-top:4px}
+.bk b{font-family:Nunito;font-size:16px;font-weight:800}
+.cal em{font-family:Nunito;font-size:11px;font-weight:800;top:4px}
+.cal span.has em{font-size:11px}

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · Ayarlar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="a.css"><link rel="stylesheet" href="a2.css"><link rel="stylesheet" href="a-ui.css">
+<style>
+.phone::after{display:none}
+.phone .scroll{padding-bottom:40px}
+.av{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:20px;color:#fff;background:#2a2733;flex:none}
+.grp{margin-top:22px}
+.grp>.k{display:block;margin:0 4px 8px}
+.list{background:#fffdf7;border:1.5px solid #ebe5d9;border-radius:20px;overflow:hidden}
+.li{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:10px 16px;text-align:left;font-weight:700;font-size:15px}
+.li+.li{border-top:1.5px solid #ebe5d9}
+.li>span{flex:1;min-width:0}
+.li small{display:block;font-size:12px;font-weight:700;opacity:.55;margin-top:1px}
+.li .v{flex:none;font-size:14px;opacity:.55}
+.li.nx::after{content:"";width:8px;height:8px;border-right:2.2px solid #b5aea2;border-top:2.2px solid #b5aea2;transform:rotate(45deg);flex:none;margin-left:2px}
+.li>svg{width:20px;height:20px;flex:none;opacity:.6}
+.li.red{color:var(--red)}
+.tg{width:48px;height:28px;border-radius:14px;background:#ddd5c6;position:relative;flex:none}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.tg.on{background:#2a2733}.tg.on::after{left:23px}
+.ok{color:#3d8a55;opacity:1!important}
+.bar2 i{animation:none}
+.mv{display:flex;align-items:center;gap:12px;padding:12px 16px}
+.mv+.mv{border-top:1.5px solid #ebe5d9}
+.mv>span{flex:1}
+.mv b{font-size:15px}
+.mv small{display:block;font-size:12px;font-weight:700;opacity:.55}
+.mv em{font-style:normal;font-weight:800;font-size:15px}
+.mv em.p{color:#3d8a55}
+.btnr{display:flex;align-items:center;justify-content:center;width:100%;height:56px;border-radius:28px;font-weight:800;font-size:16px;color:#fff;background:linear-gradient(180deg,#d8664d,#c9533a);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 5px 0 #8e3426}
+</style></head><body>
+<p class="cap">Ayarlar: ana sayfada isme dokununca açılır. Fırça chip'i doğrudan "Fırçalarım"a gider.</p>
+
+<!-- 1 · Ayarlar -->
+<div class="phone"><div class="scroll">
+  <div class="top"><button class="ib d3s" aria-label="Geri"><svg data-i="back"></svg></button></div>
+  <p class="hand" style="font-size:44px;margin-top:14px">Ayarlar</p>
+
+  <div class="flat" style="display:flex;align-items:center;gap:14px;margin-top:18px;padding:14px 16px;border-radius:22px">
+    <span class="av">A</span>
+    <span style="flex:1"><b style="font-size:17px">Ahmet</b><br><span class="sub">Yıllık plan · 12 Ekim 2027'ye kadar</span></span>
+    <button class="chip d3s" style="padding:6px 12px">Yönet</button>
+  </div>
+
+  <button class="d3" style="--c:#fffdf7;display:flex;align-items:center;gap:12px;width:100%;margin-top:16px;padding:14px 16px;border-radius:22px;text-align:left">
+    <svg data-i="brush" style="width:24px;height:24px;color:var(--red);flex:none"></svg>
+    <span style="flex:1"><b style="font-size:17px">50 fırça</b><br><span class="sub">38 abonelik · 12 paket · 1 Kasım'da yenilenir</span></span>
+    <span class="li nx" style="width:auto;min-height:0;padding:0;flex:none"></span>
+  </button>
+
+  <div class="grp"><span class="k">HATIRLATMA</span>
+    <div class="list">
+      <div class="li"><span>Anı hatırlatması</span><i class="tg on"></i></div>
+      <button class="li nx"><span>Saat</span><span class="v">21:00</span></button>
+      <button class="li nx"><span>Hedef</span><span class="v">Haftada 4 anı</span></button>
+    </div>
+  </div>
+
+  <div class="grp"><span class="k">ANILARIN</span>
+    <div class="list">
+      <div class="li"><span>Sadece bu telefonda<small>Fotoğrafların çizim için gider, saklanmaz.</small></span></div>
+      <div class="li"><span>iCloud yedeği</span><span class="v ok">Açık</span></div>
+      <button class="li nx"><svg data-i="dl"></svg><span>Tüm çizimleri dışa aktar</span></button>
+    </div>
+  </div>
+</div></div>
+
+<!-- 2 · Ayarlar (aşağı kaydırılmış) -->
+<div class="phone"><div class="scroll" style="padding-top:40px">
+  <div class="grp" style="margin-top:0"><span class="k">HESAP</span>
+    <div class="list">
+      <button class="li nx"><svg data-i="me"></svg><span>Apple ile bağla<small>Fırçan ve aboneliğin yeni telefona taşınsın</small></span></button>
+      <button class="li nx"><svg data-i="redo"></svg><span>Satın alımları geri yükle</span></button>
+    </div>
+  </div>
+
+  <div class="grp"><span class="k">DESTEK</span>
+    <div class="list">
+      <button class="li nx"><svg data-i="chat"></svg><span>Bize yaz</span></button>
+      <button class="li nx"><span>Uygulamayı değerlendir</span></button>
+      <button class="li nx"><span>Gizlilik</span></button>
+      <button class="li nx"><span>Kullanım şartları</span></button>
+    </div>
+  </div>
+
+  <div class="grp">
+    <div class="list"><button class="li red"><span>Verilerimi sil</span></button></div>
+  </div>
+  <p class="sub" style="text-align:center;margin-top:22px;font-size:12px">Doodlog 1.0 (1)</p>
+</div></div>
+
+<!-- 3 · Fırçalarım -->
+<div class="phone"><div class="scroll">
+  <div class="top"><button class="ib d3s" aria-label="Geri"><svg data-i="back"></svg></button></div>
+  <p class="hand" style="font-size:44px;margin-top:14px">Fırçalarım</p>
+  <p class="sub" style="margin-top:4px">1 çizim = 1 fırça. Önce abonelik fırçası harcanır.</p>
+
+  <div class="flat" style="margin-top:18px;padding:16px;border-radius:22px">
+    <div class="row sp"><b style="font-size:15px">Abonelik</b><b style="font-size:15px">38 / 50</b></div>
+    <div class="bar2" style="margin-top:8px"><i style="width:76%"></i></div>
+    <p class="sub" style="margin-top:6px">1 Kasım'da 50'ye yenilenir. Kalanlar devretmez.</p>
+    <div style="height:1.5px;background:#ebe5d9;margin:14px 0"></div>
+    <div class="row sp"><b style="font-size:15px">Paket</b><b style="font-size:15px">12</b></div>
+    <p class="sub" style="margin-top:4px">Süresi dolmaz.</p>
+  </div>
+
+  <div style="display:flex;gap:12px;margin-top:16px">
+    <button class="plan d3" style="--c:#fffdf7;flex:1;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 16px"><b>+10 fırça</b><span class="sub">$4,99</span></button>
+    <button class="plan d3" style="--c:#fffdf7;flex:1;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 16px"><b>+20 fırça</b><span class="sub">$7,99</span></button>
+  </div>
+
+  <div class="grp"><span class="k">SON HAREKETLER</span>
+    <div class="list">
+      <div class="mv"><span><b>Çizim · Sevgilimle</b><small>Bugün</small></span><em>−1</em></div>
+      <div class="mv"><span><b>Tekrar çizim</b><small>Dün</small></span><em>−1</em></div>
+      <div class="mv"><span><b>Çizim olmadı</b><small>23 Ekim · iade</small></span><em class="p">+1</em></div>
+      <div class="mv"><span><b>20 fırça paketi</b><small>14 Ekim</small></span><em class="p">+20</em></div>
+      <div class="mv"><span><b>Yıllık plan</b><small>12 Ekim</small></span><em class="p">+50</em></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- 4 · Verilerimi sil -->
+<div class="phone"><div class="scroll">
+  <p class="hand" style="font-size:44px;margin-top:58px;opacity:.5">Ayarlar</p>
+</div>
+<div class="dim"></div>
+<div class="sheet">
+  <div class="grab"></div>
+  <p class="t-sec" style="font-size:24px;text-align:center">Her şey silinsin mi?</p>
+  <p class="sub" style="text-align:center;margin-top:10px;line-height:1.5">Bu telefondaki tüm defterler ve anılar silinir. Hesabın ve kalan 50 fırçan da silinir. Geri alınamaz.</p>
+  <div class="flat" style="margin-top:16px;padding:12px 14px;border-radius:16px;font-weight:700;font-size:13px;line-height:1.4">Aboneliğin Apple üzerinden devam eder. İptal için: Ayarlar › Apple Kimliği › Abonelikler.</div>
+  <button class="btn2" style="margin-top:20px;height:48px"><svg data-i="dl"></svg>Önce çizimleri dışa aktar</button>
+  <button class="btnr" style="margin-top:14px">Her şeyi sil</button>
+  <button class="sub" style="display:block;margin:14px auto 0;height:24px">Vazgeç</button>
+</div>
+</div>
+<script src="shared.js"></script>
+</body></html>

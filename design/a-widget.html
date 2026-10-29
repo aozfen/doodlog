@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A · Widget</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css"><link rel="stylesheet" href="a.css"><link rel="stylesheet" href="a2.css"><link rel="stylesheet" href="a-ui.css">
+<style>
+.home{background:linear-gradient(160deg,#c9d3c4,#e8d9c7 55%,#d9c2b6)}
+.home::after,.lock::after{display:none}
+.hs{padding:70px 22px 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 18px}
+.app{aspect-ratio:1;border-radius:16px;background:rgba(255,255,255,.55)}
+.w{border-radius:24px;background:#fffdf7;position:relative;overflow:hidden;color:var(--ink);font-family:Nunito,sans-serif}
+.w2{grid-column:span 2;aspect-ratio:1;padding:12px}
+.w4{grid-column:span 4;height:160px;padding:14px 16px}
+.w .k{font-size:9px}
+.wk{display:flex;justify-content:space-between;margin-top:10px}
+.wk span{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;font-weight:800;color:#8d877c}
+.wk i{width:38px;height:38px;border-radius:12px;background:#efebe3;overflow:hidden}
+.wk i img{width:100%;height:100%;object-fit:cover;object-position:50% 0;transform:scale(1.35);transform-origin:50% 18%}
+.wk .on{color:var(--red)}.wk .on i{box-shadow:inset 0 0 0 2px var(--red)}
+.lock{background:linear-gradient(180deg,#3b4a63,#7d6f73);color:#fff;text-align:center}
+.lw{display:flex;justify-content:center;gap:14px;margin-top:18px}
+.ring{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-weight:800;font-size:13px;position:relative}
+.ring svg{position:absolute;inset:0;width:64px;height:64px;transform:rotate(-90deg)}
+.rect{width:150px;height:64px;border-radius:16px;background:rgba(255,255,255,.18);display:flex;align-items:center;gap:8px;padding:0 10px;text-align:left;font-size:12px;font-weight:700;line-height:1.2}
+.step{display:flex;gap:12px;align-items:center;font-weight:700;font-size:15px}
+.step b{width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:13px;flex:none}
+</style></head><body>
+<p class="cap">Widget: ana ekran (küçük + orta), kilit ekranı, uygulama içi tanıtım (2. hafta).</p>
+
+<!-- 1 · Ana ekran widgetları -->
+<div class="phone home nofade"><div class="hs">
+  <div class="w w2"><span class="k" style="color:var(--red);opacity:1">1 YIL ÖNCE BUGÜN</span><img class="stk" src="assets/cift_03.png" alt="" style="width:100%;margin-top:4px"></div>
+  <div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div>
+  <div class="w w4">
+    <div class="row sp"><span class="k">SEVGİLİMLE · BU HAFTA</span><span class="k" style="color:var(--red);opacity:1">3 / 7</span></div>
+    <div class="wk">
+      <span><i></i>Pt</span><span><i></i>Sa</span><span><i><img src="assets/cift_06.png" alt=""></i>Ça</span><span><i></i>Pe</span><span><i></i>Cu</span><span><i><img src="assets/cift_08.png" alt=""></i>Ct</span><span class="on"><i><img src="assets/cift_01.png" alt=""></i>Pz</span>
+    </div>
+    <p style="font-size:12px;font-weight:700;margin-top:10px;opacity:.6">Bugün eklendi · sıradaki Pazartesi</p>
+  </div>
+  <div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div>
+  <div class="w w2" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:6px"><span class="ph" style="width:56px;height:56px;border-radius:18px;margin:0"><svg data-i="plus" style="width:24px;height:24px"></svg></span><b style="font-size:13px">Bugünü çiz</b><span class="sub" style="font-size:10px">Fıstık · 12 gündür boş</span></div>
+  <div class="app"></div><div class="app"></div><div class="app"></div><div class="app"></div>
+</div></div>
+
+<!-- 2 · Kilit ekranı -->
+<div class="phone lock nofade"><div style="padding-top:90px">
+  <p style="font-weight:700;font-size:17px;opacity:.85">Pazar 25 Ekim</p>
+  <p style="font-size:86px;font-weight:700;line-height:1;letter-spacing:-.03em">21:04</p>
+  <div class="lw">
+    <div class="ring"><svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="5"/><circle cx="32" cy="32" r="28" fill="none" stroke="#fff" stroke-width="5" stroke-dasharray="75 176" stroke-linecap="round"/></svg>3/7</div>
+    <div class="rect"><svg data-i="brush" style="width:22px;height:22px;flex:none"></svg>Bugün henüz anı yok</div>
+  </div>
+  <div style="margin:280px 14px 0;background:rgba(255,255,255,.85);color:var(--ink);border-radius:20px;padding:12px 14px;text-align:left;display:flex;gap:12px;align-items:center">
+    <img class="stk" src="assets/cift_03.png" alt="" style="width:48px">
+    <span style="font-size:13px;line-height:1.3"><b>doods</b><br>1 yıl önce bugün: bebek haberi. Bugünü de ekleyelim mi?</span>
+  </div>
+</div></div>
+
+<!-- 3 · Uygulama içi tanıtım (2. hafta) -->
+<div class="phone"><div class="scroll">
+  <div class="top"><span></span><button class="ib d3s" aria-label="Kapat"><svg data-i="x"></svg></button></div>
+  <div class="w" style="width:170px;height:170px;margin:20px auto 0;padding:12px;box-shadow:0 5px 0 #e2dbcd"><span class="k" style="color:var(--red);opacity:1">1 YIL ÖNCE BUGÜN</span><img class="stk" src="assets/cift_03.png" alt="" style="width:100%;margin-top:4px"></div>
+  <p class="hand" style="font-size:42px;text-align:center;margin-top:24px">Anıların ana ekranında</p>
+  <p class="sub" style="text-align:center;margin-top:8px;font-size:14px;line-height:1.45">Her gün bir eski anı, haftanın durumu ve tek dokunuşla “Bugünü çiz”.</p>
+  <div style="display:flex;flex-direction:column;gap:14px;margin-top:26px">
+    <p class="step"><b>1</b>Ana ekranda boş bir yere basılı tut</p>
+    <p class="step"><b>2</b>Sol üstteki + ile “doods”u ara</p>
+    <p class="step"><b>3</b>Boyutunu seç, ekle</p>
+  </div>
+</div>
+<div class="foot"><button class="btn">Anladım</button></div>
+</div>
+<script src="shared.js"></script>
+</body></html>
