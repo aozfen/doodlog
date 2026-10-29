@@ -1,0 +1,422 @@
+// App store backed by Evolu (local only, no sync yet).
+// Screens read a synchronous in-memory copy, every change is written through to Evolu.
+// loadStore() fills the copy from the database once at launch.
+// When sync lands, subscribe to the Evolu queries here so changes from other devices show up.
+import * as Evolu from '@evolu/common';
+
+import { FAIL_DRAW_MS, ONBOARDING_DRAW_MS, SLOW_DRAW_MS } from '@/constants';
+import { evoluPromise, memoriesQuery, notebooksQuery, profileQuery, type Db } from '@/db/evolu';
+import { fromPictureRef, toPictureRef } from '@/db/picture';
+import { MemoryId, NotebookId, PictureRef, profileId } from '@/db/schema';
+import { toIsoDay } from '@/lib/date';
+import type { DrawJob, DrawScenario, Goal, Memory, Notebook, NotebookKind, Picture, User } from '@/types';
+
+import { seedMemories } from './memories';
+import { seedNotebooks } from './notebooks';
+import { mockToday } from './today';
+import { newUser, seedUser } from './user';
+
+/**
+ * Fresh install (empty database):
+ * true: open onboarding. false: start on home with the full mock data.
+ */
+const ONBOARDING_ON_LAUNCH = true;
+
+type State = {
+  notebooks: Notebook[];
+  memories: Memory[];
+  user: User;
+  /** The account is the developer mock account (seedUser), not a real new user. */
+  demo: boolean;
+  onboarded: boolean;
+  /** End of the one-time exit offer (ms), null until it is shown. */
+  offerEndsAt: number | null;
+  /** The first drawing while it is made, and after (done or failed). Not saved. */
+  job: DrawJob | null;
+  /** Developer menu: how the next mock first drawing behaves. Not saved. */
+  scenario: DrawScenario;
+  /** Left onboarding before the drawing: show the paywall on home once it lands. Not saved. */
+  paywallDue: boolean;
+};
+
+let state: State = {
+  notebooks: [],
+  memories: [],
+  user: newUser(),
+  demo: false,
+  onboarded: false,
+  offerEndsAt: null,
+  job: null,
+  scenario: 'normal',
+  paywallDue: false,
+};
+let jobTimer: ReturnType<typeof setTimeout> | undefined;
+let db: Db | undefined;
+
+const listeners = new Set<() => void>();
+
+const setState = (next: State) => {
+  state = next;
+  listeners.forEach((l) => l());
+};
+
+const byDate = (a: Memory, b: Memory) => a.date.localeCompare(b.date);
+
+/** Fresh-start fields shared by onboarding restarts and "Verilerimi sil". */
+const resetJob = () => {
+  clearTimeout(jobTimer);
+  return { job: null, offerEndsAt: null, paywallDue: false };
+};
+
+// --- Evolu writes ---------------------------------------------------------------
+
+const getDb = () => {
+  if (!db) throw new Error('loadStore() must finish before the store is used');
+  return db;
+};
+
+/** Trimmed text cut to fit the column, null when empty. */
+const clip = (value: string, max: number) => value.trim().slice(0, max).trim();
+const text100 = (value: string) => {
+  const result = Evolu.NonEmptyTrimmedString100.fromUnknown(clip(value, 100));
+  return result.ok ? result.value : null;
+};
+const text1000 = (value: string) => {
+  const result = Evolu.NonEmptyTrimmedString1000.fromUnknown(clip(value, 1000));
+  return result.ok ? result.value : null;
+};
+const pictureRef = (picture: Picture) => PictureRef.orThrow(toPictureRef(picture));
+const day = (iso: string) => Evolu.PlainDateIso.orThrow(iso);
+const count = (n: number) => Evolu.NonNegativeInt.orThrow(Math.max(0, Math.round(n)));
+
+function insertNotebook(name: string, kind: NotebookKind): Notebook {
+  const createdAt = toIsoDay(mockToday);
+  const { id } = getDb().insert('notebook', {
+    name: Evolu.NonEmptyTrimmedString100.orThrow(clip(name, 100)),
+    kind,
+    createdOn: day(createdAt),
+  });
+  return { id, name, kind, createdAt };
+}
+
+function insertMemory(memory: Omit<Memory, 'id'>): Memory {
+  const { id } = getDb().insert('memory', {
+    notebookId: NotebookId.orThrow(memory.notebookId),
+    date: day(memory.date),
+    note: text1000(memory.note),
+    drawing: pictureRef(memory.drawing),
+    photo: memory.photo ? pictureRef(memory.photo) : null,
+  });
+  return { ...memory, id };
+}
+
+const setNotebookDeleted = (id: string, deleted: boolean) =>
+  getDb().update('notebook', { id: NotebookId.orThrow(id), isDeleted: Evolu.booleanToSqliteBoolean(deleted) });
+
+const setMemoryDeleted = (id: string, deleted: boolean) =>
+  getDb().update('memory', { id: MemoryId.orThrow(id), isDeleted: Evolu.booleanToSqliteBoolean(deleted) });
+
+/** Soft-deletes every notebook and memory in the store. */
+function deleteAllRows() {
+  state.notebooks.forEach((n) => setNotebookDeleted(n.id, true));
+  state.memories.forEach((m) => setMemoryDeleted(m.id, true));
+}
+
+/** Saves the user, onboarding and offer fields of the current state. */
+function saveProfile() {
+  const { user, demo, onboarded, offerEndsAt } = state;
+  getDb().upsert('profile', {
+    id: profileId,
+    name: text100(user.name),
+    goal: user.goal,
+    reminderAt: user.reminderAt ? text100(user.reminderAt) : null,
+    onboarded: Evolu.booleanToSqliteBoolean(onboarded),
+    demo: Evolu.booleanToSqliteBoolean(demo),
+    brushPack: count(user.brushes.pack),
+    brushSubscription: count(user.brushes.subscription),
+    offerEndsAt: offerEndsAt === null ? null : count(offerEndsAt),
+  });
+}
+
+// --- Launch -------------------------------------------------------------------
+
+/** Opens the database and fills the store. Call once before rendering screens. */
+export async function loadStore() {
+  db = await evoluPromise;
+  const [notebookRows, memoryRows, profileRows] = await Promise.all([
+    db.loadQuery(notebooksQuery),
+    db.loadQuery(memoriesQuery),
+    db.loadQuery(profileQuery),
+  ]);
+
+  const profile = profileRows[0];
+  if (!profile) {
+    if (!ONBOARDING_ON_LAUNCH) restoreMockData();
+    return;
+  }
+
+  const notebooks: Notebook[] = notebookRows.flatMap((r) =>
+    r.name && r.kind && r.createdOn
+      ? [
+          {
+            id: r.id,
+            name: r.name,
+            kind: r.kind,
+            createdAt: r.createdOn,
+            cover: r.cover ? fromPictureRef(r.cover) : undefined,
+          },
+        ]
+      : [],
+  );
+  const memories: Memory[] = memoryRows.flatMap((r) =>
+    r.notebookId && r.date && r.drawing
+      ? [
+          {
+            id: r.id,
+            notebookId: r.notebookId,
+            date: r.date,
+            note: r.note ?? '',
+            drawing: fromPictureRef(r.drawing),
+            photo: r.photo ? fromPictureRef(r.photo) : undefined,
+          },
+        ]
+      : [],
+  );
+
+  const demo = profile.demo === Evolu.sqliteTrue;
+  const base = demo ? seedUser : newUser();
+  const user: User = {
+    ...base,
+    name: profile.name ?? '',
+    goal: profile.goal ?? base.goal,
+    reminderAt: profile.reminderAt ?? null,
+    brushes: {
+      ...base.brushes,
+      pack: profile.brushPack ?? base.brushes.pack,
+      subscription: profile.brushSubscription ?? base.brushes.subscription,
+    },
+  };
+
+  setState({
+    ...state,
+    notebooks,
+    memories,
+    user,
+    demo,
+    onboarded: profile.onboarded === Evolu.sqliteTrue,
+    offerEndsAt: profile.offerEndsAt ?? null,
+  });
+}
+
+// --- Reads --------------------------------------------------------------------
+
+export const getNotebooks = () => state.notebooks;
+export const getMemories = () => state.memories;
+export const getUser = () => state.user;
+export const isOnboarded = () => state.onboarded;
+export const getOfferEndsAt = () => state.offerEndsAt;
+export const getJob = () => state.job;
+export const getScenario = () => state.scenario;
+export const isPaywallDue = () => state.paywallDue;
+
+export const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+
+// --- Changes ------------------------------------------------------------------
+
+export function setPaywallDue(paywallDue: boolean) {
+  setState({ ...state, paywallDue });
+}
+
+export function setScenario(scenario: DrawScenario) {
+  setState({ ...state, scenario });
+}
+
+/** Starts the exit offer clock once. Showing the offer again never resets it. */
+export function startOffer(hours: number) {
+  if (state.offerEndsAt !== null) return state.offerEndsAt;
+  const endsAt = Date.now() + hours * 3_600_000;
+  setState({ ...state, offerEndsAt: endsAt });
+  saveProfile();
+  return endsAt;
+}
+
+export function createNotebook(name: string, kind: NotebookKind): Notebook {
+  const notebook = insertNotebook(name, kind);
+  setState({ ...state, notebooks: [...state.notebooks, notebook] });
+  return notebook;
+}
+
+/** Adds to the pack brushes (negative to spend). */
+const withPack = (user: User, delta: number): User => ({
+  ...user,
+  brushes: { ...user.brushes, pack: user.brushes.pack + delta },
+});
+
+/** Onboarding: a fresh account with the first, still empty notebook. */
+export function startJournal(name: string, kind: NotebookKind): Notebook {
+  clearTimeout(jobTimer);
+  deleteAllRows();
+  const notebook = insertNotebook(name, kind);
+  setState({ ...state, notebooks: [notebook], memories: [], user: newUser(), demo: false, job: null });
+  saveProfile();
+  return notebook;
+}
+
+/**
+ * Mock of the backend drawing the first memory. The result lands in the store even
+ * when no screen is open. "fail" fails once: the retry draws normally.
+ * The drawing becomes the notebook cover.
+ */
+export function startFirstDrawing(notebookId: string, drawing: Picture, photo?: Picture): DrawJob {
+  clearTimeout(jobTimer);
+  const { scenario } = state;
+  const startedAt = Date.now();
+  const job: DrawJob = {
+    notebookId,
+    photo,
+    drawing,
+    startedAt,
+    endsAt: startedAt + (scenario === 'slow' ? SLOW_DRAW_MS : ONBOARDING_DRAW_MS),
+    status: 'drawing',
+  };
+  setState({
+    ...state,
+    job,
+    scenario: scenario === 'fail' ? 'normal' : scenario,
+    user: withPack(state.user, -1), // every drawing costs 1 fırça
+  });
+  saveProfile();
+
+  if (scenario === 'fail') {
+    jobTimer = setTimeout(() => {
+      // Brush back, no gift: a gift would reward sending bad photos.
+      setState({ ...state, user: withPack(state.user, 1), job: { ...job, status: 'failed' } });
+      saveProfile();
+    }, FAIL_DRAW_MS);
+  } else {
+    jobTimer = setTimeout(() => {
+      const today = toIsoDay(mockToday);
+      // One memory per day in the mock: today's earlier memory is replaced.
+      const replaced = state.memories.filter((m) => m.date === today);
+      replaced.forEach((m) => setMemoryDeleted(m.id, true));
+      const memory = insertMemory({ notebookId, date: today, note: '', drawing, photo });
+      getDb().update('notebook', { id: NotebookId.orThrow(notebookId), cover: pictureRef(drawing) });
+      setState({
+        ...state,
+        notebooks: state.notebooks.map((n) => (n.id === notebookId ? { ...n, cover: drawing } : n)),
+        memories: [...state.memories.filter((m) => m.date !== today), memory],
+        job: { ...job, status: 'done' },
+      });
+    }, job.endsAt - startedAt);
+  }
+  return job;
+}
+
+export function finishOnboarding(profile: Pick<User, 'name' | 'goal' | 'reminderAt'>) {
+  setState({ ...state, user: { ...state.user, ...profile }, onboarded: true });
+  saveProfile();
+}
+
+/** Reminder time ("21:00"), or null to turn reminders off. */
+export function setReminderAt(reminderAt: string | null) {
+  setState({ ...state, user: { ...state.user, reminderAt } });
+  saveProfile();
+}
+
+/** How often the user wants to add a memory: sets the reminder days. */
+export function setGoal(goal: Goal) {
+  setState({ ...state, user: { ...state.user, goal } });
+  saveProfile();
+}
+
+/** Developer menu: show onboarding again. Its first drawing replaces the data. */
+export function restartOnboarding() {
+  setState({ ...state, ...resetJob(), onboarded: false });
+  saveProfile();
+}
+
+/** Developer menu: back to the full mock data, onboarding skipped. */
+export function restoreMockData() {
+  const evolu = getDb();
+  deleteAllRows();
+  for (const n of seedNotebooks) {
+    const id = NotebookId.orThrow(n.id);
+    evolu.upsert('notebook', {
+      id,
+      name: Evolu.NonEmptyTrimmedString100.orThrow(n.name),
+      kind: n.kind,
+      createdOn: day(n.createdAt),
+      cover: n.cover ? pictureRef(n.cover) : null,
+    });
+    // Stable seed ids: a restore after a delete brings the same row back.
+    evolu.update('notebook', { id, isDeleted: Evolu.sqliteFalse });
+  }
+  const memories = seedMemories.map(({ id: _seedId, ...m }) => insertMemory(m));
+  setState({
+    ...state,
+    ...resetJob(),
+    notebooks: seedNotebooks,
+    memories,
+    user: seedUser,
+    demo: true,
+    onboarded: true,
+  });
+  saveProfile();
+}
+
+/** "Verilerimi sil": everything goes, the app starts over at onboarding. */
+export function eraseEverything() {
+  deleteAllRows();
+  setState({ ...state, ...resetJob(), notebooks: [], memories: [], user: newUser(), demo: false, onboarded: false });
+  saveProfile();
+}
+
+/**
+ * Deletes a notebook. Its memories move to `moveTo`, or are deleted without it.
+ * Returns an undo that puts the notebook back in place with its memories.
+ */
+export function deleteNotebook(id: string, moveTo?: string): (() => void) | undefined {
+  const evolu = getDb();
+  const index = state.notebooks.findIndex((n) => n.id === id);
+  if (index < 0) return undefined;
+  const notebook = state.notebooks[index];
+  const owned = state.memories.filter((m) => m.notebookId === id);
+
+  setNotebookDeleted(id, true);
+  owned.forEach((m) =>
+    moveTo
+      ? evolu.update('memory', { id: MemoryId.orThrow(m.id), notebookId: NotebookId.orThrow(moveTo) })
+      : setMemoryDeleted(m.id, true),
+  );
+  setState({
+    ...state,
+    notebooks: state.notebooks.filter((n) => n.id !== id),
+    memories: moveTo
+      ? state.memories.map((m) => (m.notebookId === id ? { ...m, notebookId: moveTo } : m))
+      : state.memories.filter((m) => m.notebookId !== id),
+  });
+
+  return () => {
+    setNotebookDeleted(id, false);
+    owned.forEach((m) =>
+      evolu.update('memory', {
+        id: MemoryId.orThrow(m.id),
+        notebookId: NotebookId.orThrow(id),
+        isDeleted: Evolu.sqliteFalse,
+      }),
+    );
+    const ownedIds = new Set(owned.map((m) => m.id));
+    const notebooks = [...state.notebooks];
+    notebooks.splice(Math.min(index, notebooks.length), 0, notebook);
+    setState({
+      ...state,
+      notebooks,
+      memories: [...state.memories.filter((m) => !ownedIds.has(m.id)), ...owned].sort(byDate),
+    });
+  };
+}
