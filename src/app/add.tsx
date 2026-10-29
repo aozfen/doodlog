@@ -21,16 +21,18 @@ import { Button, Chip, Field, Flat, IconButton, ProgressBar, ProgressFill, Stick
 import { DRAW_MS } from '@/constants';
 import { useSheet } from '@/hooks/use-sheet';
 import { useUser } from '@/hooks/use-store';
-import { comingSoon } from '@/lib/alerts';
+import { comingSoon, noBrushes } from '@/lib/alerts';
 import { drawingPop } from '@/lib/animations';
-import { dayMonth } from '@/lib/date';
+import { dayMonth, toIsoDay } from '@/lib/date';
 import {
+  addMemory,
   drawings,
   getNotebook,
   guessNotebook,
   isDrawingKey,
   mockToday,
   photos,
+  spendBrush,
   todayPhotos,
   totalBrushes,
   type DrawingKey,
@@ -108,8 +110,8 @@ function Drawing({
     <View style={[styles.root, { paddingTop: insets.top + 12 }]}>
       <View style={styles.top}>
         <IconButton icon="x" label="Kapat" onPress={() => router.back()} />
-        {/* Every drawing, redraws too, costs 1 fırça (mock balance does not change). */}
-        <Chip icon="brush" label={String(totalBrushes(user) - (round + 1))} />
+        {/* Every drawing, redraws too, costs 1 fırça. It is spent before this screen opens. */}
+        <Chip icon="brush" label={String(totalBrushes(user))} />
       </View>
 
       <View style={styles.reveal}>
@@ -165,7 +167,7 @@ function Ready({
   const redraw = () => {
     Alert.alert('Tekrar çiz', '1 fırça harcanır.', [
       { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Çiz · 1 fırça', onPress: onRedraw },
+      { text: 'Çiz · 1 fırça', onPress: () => (spendBrush() ? onRedraw() : noBrushes()) },
     ]);
   };
 
@@ -211,8 +213,17 @@ function Ready({
         <Button
           icon="check"
           label="Kaydet"
+          disabled={!notebook}
           onPress={() => {
-            // Mock: nothing is stored yet. Back to where "Anı ekle" was opened.
+            if (!notebook) return;
+            addMemory({
+              notebookId: notebook.id,
+              date: toIsoDay(mockToday),
+              note,
+              drawing: drawings[photo],
+              photo: photos[photo],
+            });
+            // Back to where "Anı ekle" was opened.
             router.back();
           }}
         />

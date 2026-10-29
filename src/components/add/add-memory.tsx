@@ -5,8 +5,8 @@ import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { Button, Sheet, Text } from '@/components/ui';
 import { SHEET_SWAP_MS, routes } from '@/constants';
-import { comingSoon } from '@/lib/alerts';
-import { photos, todayPhotos, type DrawingKey } from '@/mock';
+import { comingSoon, noBrushes } from '@/lib/alerts';
+import { photos, spendBrush, todayPhotos, type DrawingKey } from '@/mock';
 import { colors, fonts, radius } from '@/theme';
 
 const Ctx = createContext<{ open: (notebookId?: string) => void }>({ open: () => {} });
@@ -28,6 +28,10 @@ export function AddMemoryProvider({ children }: { children: ReactNode }) {
 
   const draw = () => {
     setVisible(false);
+    if (!spendBrush()) {
+      setTimeout(noBrushes, SHEET_SWAP_MS);
+      return;
+    }
     // Wait for the sheet to close before opening the next modal screen.
     setTimeout(() => router.push(routes.add(selected, notebookId)), SHEET_SWAP_MS);
   };

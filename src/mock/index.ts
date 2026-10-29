@@ -9,6 +9,7 @@ import { mockToday } from './today';
 
 export { drawings, photos, type DrawingKey } from './images';
 export {
+  addMemory,
   createNotebook,
   deleteNotebook,
   eraseEverything,
@@ -28,6 +29,7 @@ export {
   restoreMockData,
   setPaywallDue,
   setScenario,
+  spendBrush,
   startFirstDrawing,
   startJournal,
   startOffer,
@@ -41,7 +43,8 @@ export const getMemory = (id: string) => getMemories().find((m) => m.id === id);
 export const memoriesOf = (notebookId: string) => getMemories().filter((m) => m.notebookId === notebookId);
 export const statsOf = (notebookId: string) => notebookStats(memoriesOf(notebookId), mockToday);
 
-const memoryOn = (day: string) => getMemories().find((m) => m.date === day);
+/** Newest memory of a day. */
+const memoryOn = (day: string) => getMemories().findLast((m) => m.date === day);
 export const getTodayMemory = () => memoryOn(toIsoDay(mockToday));
 export const getOnThisDayMemory = () =>
   memoryOn(isoDay(mockToday.getFullYear() - 1, mockToday.getMonth(), mockToday.getDate()));

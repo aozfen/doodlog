@@ -122,10 +122,16 @@ function deleteAllRows() {
   state.memories.forEach((m) => setMemoryDeleted(m.id, true));
 }
 
-/** Saves the user, onboarding and offer fields of the current state. */
+/** Saves the user, onboarding, offer and drawing job fields of the current state. */
 function saveProfile() {
-  const { user, demo, onboarded, offerEndsAt } = state;
+  const { user, demo, onboarded, offerEndsAt, job } = state;
   getDb().upsert('profile', {
+    jobNotebookId: job ? NotebookId.orThrow(job.notebookId) : null,
+    jobDrawing: job ? pictureRef(job.drawing) : null,
+    jobPhoto: job?.photo ? pictureRef(job.photo) : null,
+    jobStartedAt: job ? count(job.startedAt) : null,
+    jobEndsAt: job ? count(job.endsAt) : null,
+    jobStatus: job?.status ?? null,
     id: profileId,
     name: text100(user.name),
     goal: user.goal,
@@ -197,6 +203,18 @@ export async function loadStore() {
     },
   };
 
+  const job: DrawJob | null =
+    profile.jobNotebookId && profile.jobDrawing && profile.jobStartedAt !== null && profile.jobEndsAt !== null
+      ? {
+          notebookId: profile.jobNotebookId,
+          drawing: fromPictureRef(profile.jobDrawing),
+          photo: profile.jobPhoto ? fromPictureRef(profile.jobPhoto) : undefined,
+          startedAt: profile.jobStartedAt,
+          endsAt: profile.jobEndsAt,
+          status: profile.jobStatus ?? 'drawing',
+        }
+      : null;
+
   setState({
     ...state,
     notebooks,
@@ -205,7 +223,11 @@ export async function loadStore() {
     demo,
     onboarded: profile.onboarded === Evolu.sqliteTrue,
     offerEndsAt: profile.offerEndsAt ?? null,
+    job,
   });
+
+  // The app was closed while drawing: the mock backend kept going, so finish now or when due.
+  if (job?.status === 'drawing') jobTimer = setTimeout(() => finishDrawing(job), Math.max(0, job.endsAt - Date.now()));
 }
 
 // --- Reads --------------------------------------------------------------------
@@ -257,6 +279,56 @@ const withPack = (user: User, delta: number): User => ({
   brushes: { ...user.brushes, pack: user.brushes.pack + delta },
 });
 
+/** The first drawing landed: it becomes today's memory and the notebook cover. */
+function finishDrawing(job: DrawJob) {
+  const { notebookId, drawing, photo } = job;
+  const today = toIsoDay(mockToday);
+  // One memory per day in onboarding: today's earlier memory is replaced.
+  const replaced = state.memories.filter((m) => m.date === today);
+  replaced.forEach((m) => setMemoryDeleted(m.id, true));
+  const memory = insertMemory({ notebookId, date: today, note: '', drawing, photo });
+  getDb().update('notebook', { id: NotebookId.orThrow(notebookId), cover: pictureRef(drawing) });
+  setState({
+    ...state,
+    notebooks: state.notebooks.map((n) => (n.id === notebookId ? { ...n, cover: drawing } : n)),
+    memories: [...state.memories.filter((m) => m.date !== today), memory],
+    job: { ...job, status: 'done' },
+  });
+  saveProfile();
+}
+
+/**
+ * Spends 1 fırça for a drawing: subscription brushes first, they expire; pack brushes never do.
+ * Returns false when there is none left.
+ */
+export function spendBrush(): boolean {
+  const { brushes } = state.user;
+  if (brushes.subscription + brushes.pack <= 0) return false;
+  const next =
+    brushes.subscription > 0
+      ? { ...brushes, subscription: brushes.subscription - 1 }
+      : { ...brushes, pack: brushes.pack - 1 };
+  setState({ ...state, user: { ...state.user, brushes: next } });
+  saveProfile();
+  return true;
+}
+
+/** Saves a finished drawing as a memory. The first memory of a notebook becomes its cover. */
+export function addMemory(memory: Omit<Memory, 'id'>): Memory {
+  const saved = insertMemory(memory);
+  const notebook = state.notebooks.find((n) => n.id === memory.notebookId);
+  const needsCover = notebook !== undefined && notebook.cover === undefined;
+  if (needsCover) getDb().update('notebook', { id: NotebookId.orThrow(notebook.id), cover: pictureRef(memory.drawing) });
+  setState({
+    ...state,
+    notebooks: needsCover
+      ? state.notebooks.map((n) => (n.id === notebook.id ? { ...n, cover: memory.drawing } : n))
+      : state.notebooks,
+    memories: [...state.memories, saved].sort(byDate),
+  });
+  return saved;
+}
+
 /** Onboarding: a fresh account with the first, still empty notebook. */
 export function startJournal(name: string, kind: NotebookKind): Notebook {
   clearTimeout(jobTimer);
@@ -299,20 +371,7 @@ export function startFirstDrawing(notebookId: string, drawing: Picture, photo?: 
       saveProfile();
     }, FAIL_DRAW_MS);
   } else {
-    jobTimer = setTimeout(() => {
-      const today = toIsoDay(mockToday);
-      // One memory per day in the mock: today's earlier memory is replaced.
-      const replaced = state.memories.filter((m) => m.date === today);
-      replaced.forEach((m) => setMemoryDeleted(m.id, true));
-      const memory = insertMemory({ notebookId, date: today, note: '', drawing, photo });
-      getDb().update('notebook', { id: NotebookId.orThrow(notebookId), cover: pictureRef(drawing) });
-      setState({
-        ...state,
-        notebooks: state.notebooks.map((n) => (n.id === notebookId ? { ...n, cover: drawing } : n)),
-        memories: [...state.memories.filter((m) => m.date !== today), memory],
-        job: { ...job, status: 'done' },
-      });
-    }, job.endsAt - startedAt);
+    jobTimer = setTimeout(() => finishDrawing(job), job.endsAt - startedAt);
   }
   return job;
 }

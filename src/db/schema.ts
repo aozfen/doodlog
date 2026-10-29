@@ -10,6 +10,7 @@ export const ProfileId = Evolu.id('Profile');
 
 export const NotebookKind = Evolu.union('partner', 'child', 'family', 'friends', 'pet', 'self', 'other');
 export const Goal = Evolu.union('weekly1', 'weekly3', 'daily');
+export const JobStatus = Evolu.union('drawing', 'done', 'failed');
 
 /** A picture saved as text: "drawing:<key>" / "photo:<key>" for bundled mock images, else a file URI. */
 export const PictureRef = Evolu.NonEmptyTrimmedString1000;
@@ -43,6 +44,13 @@ export const Schema = {
     brushPack: Evolu.NonNegativeInt,
     brushSubscription: Evolu.NonNegativeInt,
     offerEndsAt: Evolu.nullOr(Evolu.NonNegativeInt),
+    // The first drawing job, so a drawing in progress survives an app restart. All null without a job.
+    jobNotebookId: Evolu.nullOr(NotebookId),
+    jobDrawing: Evolu.nullOr(PictureRef),
+    jobPhoto: Evolu.nullOr(PictureRef),
+    jobStartedAt: Evolu.nullOr(Evolu.NonNegativeInt),
+    jobEndsAt: Evolu.nullOr(Evolu.NonNegativeInt),
+    jobStatus: Evolu.nullOr(JobStatus),
   },
 };
 
