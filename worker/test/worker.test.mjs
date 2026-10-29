@@ -149,6 +149,18 @@ async function run() {
   res = await b.draw('request-a-1');
   check('other user cannot use the request id', res.status === 409);
 
+  console.log('stale request');
+  sql(`INSERT INTO draws (request_id, user_id, status, bucket, created_at, updated_at)
+       VALUES ('request-b-stale', '${b.id}', 'pending', 'pack', 0, 0)`);
+  await b.brushes();
+  res = await b.draw('request-b-stale');
+  body = await res.json();
+  check('stuck pending request runs again without a charge', res.status === 200 && body.brushes.total === 3, body);
+  sql(`INSERT INTO draws (request_id, user_id, status, created_at, updated_at)
+       VALUES ('request-b-busy', '${b.id}', 'pending', ${Date.now()}, ${Date.now()})`);
+  res = await b.draw('request-b-busy');
+  check('fresh pending request is in progress', res.status === 409 && (await res.json()).error === 'in_progress');
+
   console.log('failure');
   res = await a.draw('request-a-fail', FAILING_PHOTO);
   body = await res.json();

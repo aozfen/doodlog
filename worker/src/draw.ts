@@ -3,7 +3,7 @@ import { drawWithGemini } from './gemini';
 import { json, now } from './http';
 
 // POST /v1/draw { requestId, photo, cards }
-// photo: base64 JPEG (the app resizes it to 2048 px). cards: base64 PNG character cards
+// photo: base64 JPEG (the app resizes it to 1536 px). cards: base64 PNG character cards
 // of the notebook, at most 4. Neither the photo nor the drawing is stored.
 //
 // The request id makes retries safe: a request is charged once. If the app lost the
@@ -13,12 +13,20 @@ const MAX_CARDS = 4;
 const MAX_PHOTO_CHARS = 4_000_000; // ~3 MB
 const MAX_CARD_CHARS = 2_000_000; // ~1.5 MB
 const FREE_REPEATS = 1;
+/** A pending request older than this lost its Worker (app closed mid-drawing): it may run again, unpaid. */
+const STALE_PENDING_MS = 3 * 60 * 1000;
 const REQUEST_ID = /^[\w-]{8,64}$/;
 const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/;
 
 type DrawInput = { requestId: string; photo: string; cards: string[] };
 
-type DrawRow = { user_id: string; status: 'pending' | 'done' | 'failed'; attempts: number; bucket: Bucket | null };
+type DrawRow = {
+  user_id: string;
+  status: 'pending' | 'done' | 'failed';
+  attempts: number;
+  bucket: Bucket | null;
+  updated_at: number;
+};
 
 export async function handleDraw(env: Env, userId: string, body: ArrayBuffer) {
   const { success } = await env.DRAW_LIMITER.limit({ key: userId });
@@ -91,17 +99,18 @@ async function claimRequest(
     .run();
   if (inserted.meta.changes > 0) return { charge: true };
 
-  const row = await env.DB.prepare('SELECT user_id, status, attempts, bucket FROM draws WHERE request_id = ?')
+  const row = await env.DB.prepare('SELECT user_id, status, attempts, bucket, updated_at FROM draws WHERE request_id = ?')
     .bind(requestId)
     .first<DrawRow>();
   if (!row || row.user_id !== userId) return { error: 'request_id_taken' };
-  if (row.status === 'pending') return { error: 'in_progress' };
+  if (row.status === 'pending' && row.updated_at > at - STALE_PENDING_MS) return { error: 'in_progress' };
   if (row.status === 'done' && row.attempts > FREE_REPEATS) return { error: 'already_done' };
 
   const moved = await env.DB.prepare(
-    "UPDATE draws SET status = 'pending', updated_at = ? WHERE request_id = ? AND status = ? AND attempts = ?",
+    `UPDATE draws SET status = 'pending', updated_at = ?
+     WHERE request_id = ? AND status = ? AND attempts = ? AND updated_at = ?`,
   )
-    .bind(at, requestId, row.status, row.attempts)
+    .bind(at, requestId, row.status, row.attempts, row.updated_at)
     .run();
   if (moved.meta.changes === 0) return { error: 'in_progress' };
   return { charge: row.status === 'failed' };
