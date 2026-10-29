@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["CutoutModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.cutout.CutoutModule"]
+  }
+}

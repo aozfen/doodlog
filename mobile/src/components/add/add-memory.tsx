@@ -5,8 +5,9 @@ import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { Button, Sheet, Text } from '@/components/ui';
 import { SHEET_SWAP_MS, routes } from '@/constants';
-import { comingSoon, noBrushes } from '@/lib/alerts';
-import { photos, spendBrush, todayPhotos, type DrawingKey } from '@/mock';
+import { noBrushes } from '@/lib/alerts';
+import { photoParam, pickPhoto } from '@/lib/photos';
+import { hasBrush, photos, todayPhotos, type DrawingKey } from '@/mock';
 import { colors, fonts, radius } from '@/theme';
 
 const Ctx = createContext<{ open: (notebookId?: string) => void }>({ open: () => {} });
@@ -26,14 +27,17 @@ export function AddMemoryProvider({ children }: { children: ReactNode }) {
   const [selected, setSelected] = useState<DrawingKey>(todayPhotos[0]);
   const [notebookId, setNotebookId] = useState<string>();
 
-  const draw = () => {
+  /** `photo`: a bundled mock key or a picked file URI. The server spends the brush. */
+  const draw = (photo: string) => {
     setVisible(false);
-    if (!spendBrush()) {
-      setTimeout(noBrushes, SHEET_SWAP_MS);
-      return;
-    }
-    // Wait for the sheet to close before opening the next modal screen.
-    setTimeout(() => router.push(routes.add(selected, notebookId)), SHEET_SWAP_MS);
+    // Wait for the sheet to close before opening the next sheet or screen.
+    setTimeout(() => (hasBrush() ? router.push(routes.add(photo, notebookId)) : noBrushes()), SHEET_SWAP_MS);
+  };
+
+  const drawFromGallery = async () => {
+    const picked = await pickPhoto();
+    const uri = picked && photoParam(picked);
+    if (uri) draw(uri);
   };
 
   return (
@@ -80,9 +84,9 @@ export function AddMemoryProvider({ children }: { children: ReactNode }) {
           label="Tüm fotoğraflar"
           size="m"
           style={{ marginTop: 16 }}
-          onPress={() => comingSoon('Tüm fotoğraflar', 'Yakında: galeri açılır')}
+          onPress={drawFromGallery}
         />
-        <Button icon="brush" label="Çiz · 1 fırça" style={{ marginTop: 14 }} onPress={draw} />
+        <Button icon="brush" label="Çiz · 1 fırça" style={{ marginTop: 14 }} onPress={() => draw(selected)} />
       </Sheet>
     </Ctx.Provider>
   );

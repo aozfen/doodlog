@@ -36,7 +36,16 @@
         }
       ],
       "expo-notifications",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Anılarını çizmek için seçtiğin fotoğraflara erişir.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

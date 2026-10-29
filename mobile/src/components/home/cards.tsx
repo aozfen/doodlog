@@ -29,12 +29,12 @@ export function TodayCard({
 }
 
 // Today's drawing is still being made (left onboarding while it drew). Info only, so flat.
-export function DrawingTodayCard({ photo, drawing }: { photo?: Picture; drawing: Picture }) {
+export function DrawingTodayCard({ photo, drawing }: { photo?: Picture; drawing?: Picture }) {
   return (
     <Flat style={styles.drawing}>
       <View style={styles.drawingArt}>
         {photo ? <Image source={photo} style={styles.drawingPhoto} contentFit="cover" /> : null}
-        <Sticker source={drawing} style={[StyleSheet.absoluteFill, { opacity: 0.35 }]} />
+        {drawing ? <Sticker source={drawing} style={[StyleSheet.absoluteFill, { opacity: 0.35 }]} /> : null}
       </View>
       <Text variant="label" style={styles.drawingLabel}>
         Bugün · çiziliyor

@@ -16,9 +16,6 @@ export const TOAST_MS = 2800;
 /** A toast with "Geri al" stays longer, so there is time to tap it. */
 export const UNDO_TOAST_MS = 5000;
 
-/** Mock drawing time. The real Gemini call takes about 10-20 s. */
-export const DRAW_MS = 4500;
-
 /** Months listed in month view (calendar and notebook): current month first. */
 export const MONTHS_SHOWN = 3;
 
@@ -93,3 +90,15 @@ export const EXIT_OFFER = {
   badge: '%48 indirim',
   hours: 24,
 } as const;
+
+/** Doodlog Worker (worker/). Override with EXPO_PUBLIC_API_URL, e.g. a local `wrangler dev`. */
+export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://doodlog-api.wemolabs.workers.dev';
+
+/** Photos are resized to this many pixels on the long side before drawing. */
+export const DRAW_PHOTO_PX = 1536;
+
+/** The real drawing takes about 10-20 s; the wait bar is paced for this. */
+export const EXPECTED_DRAW_MS = 18000;
+
+/** Paint reveal once the drawing has landed. */
+export const REVEAL_MS = 1600;

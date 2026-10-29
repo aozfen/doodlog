@@ -13,7 +13,7 @@ export type Notebook = {
   kind: NotebookKind;
   /** ISO day the notebook was created. */
   createdAt: string;
-  /** Undefined until the first memory: its drawing becomes the cover. */
+  /** Undefined until the first memory. The newest drawing becomes the cover. */
   cover?: Picture;
 };
 
@@ -60,13 +60,19 @@ export type User = {
   reminderAt: string | null;
 };
 
+/** Brush balance as the Worker returns it (GET /v1/brushes). */
+export type ServerBalance = { subscription: number; pack: number; total: number; renewsAt: number | null };
+
 export type BrushMove = { title: string; when: string; delta: number };
 
 /** A drawing being made by the backend. Lives outside screens, so leaving one keeps it going. */
 export type DrawJob = {
   notebookId: string;
+  /** Sent again with the same request id when the app restarts mid-drawing. */
+  requestId: string;
   photo?: Picture;
-  drawing: Picture;
+  /** Undefined until the drawing lands. */
+  drawing?: Picture;
   startedAt: number;
   /** Expected end (ms), drives the progress bar. */
   endsAt: number;

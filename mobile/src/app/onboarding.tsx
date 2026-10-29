@@ -27,6 +27,7 @@ import {
   type OnboardingKind,
 } from '@/constants';
 import { track } from '@/lib/analytics';
+import { pickPhoto as pickFromGallery } from '@/lib/photos';
 import { ensureNotificationPermission, scheduleReminders } from '@/lib/notifications';
 import { useDrawJob } from '@/hooks/use-store';
 import {
@@ -119,15 +120,16 @@ export default function OnboardingScreen() {
     setKind(next);
   };
 
-  // Mock "Gemini": the sample of the chosen kind comes back as the drawing.
+  // The picked photo is drawn in the background while the questions are asked.
   // A retry (after a failure) keeps the notebook and skips the questions already answered.
-  const pickPhoto = () => {
+  const pickPhoto = async () => {
     if (!kind) return;
+    const photo = await pickFromGallery();
+    if (!photo) return;
     const retry = notebookId !== null;
     const id = notebookId ?? startJournal(notebookName.trim(), kind).id;
     setNotebookId(id);
-    const sample = ONBOARDING_COPY[kind].sample;
-    const started = startFirstDrawing(id, drawings[sample], photos[sample]);
+    const started = startFirstDrawing(id, photo);
     progress.set(0);
     progress.set(withTiming(1, { duration: started.endsAt - started.startedAt, easing: Easing.inOut(Easing.quad) }));
     setStayed(false);
@@ -166,6 +168,10 @@ export default function OnboardingScreen() {
     else finish(reminderAt);
   };
 
+  const memory = drawn ? getTodayMemory() : undefined;
+  // The paywall shows the user's own drawing; the sample stands in only if there is none.
+  const paywallDrawing = memory?.drawing ?? job?.drawing ?? (copy ? drawings[copy.sample] : undefined);
+
   const status =
     copy && !paywallSeen ? (
       <DrawingStatus
@@ -177,8 +183,6 @@ export default function OnboardingScreen() {
         failed={failed}
       />
     ) : null;
-
-  const memory = drawn ? getTodayMemory() : undefined;
 
   const render = () => {
     switch (step) {
@@ -262,7 +266,10 @@ export default function OnboardingScreen() {
       case 'offer':
         return <ExitOffer onClose={closeOffer} />;
       case 'paywall':
-        return copy && <PaywallStep drawing={drawings[copy.sample]} title={copy.paywallTitle} onClose={closePaywall} />;
+        return (
+          copy &&
+          paywallDrawing && <PaywallStep drawing={paywallDrawing} title={copy.paywallTitle} onClose={closePaywall} />
+        );
     }
   };
 

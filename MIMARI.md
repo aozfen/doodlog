@@ -21,7 +21,7 @@ Eski ortak defterli, uçtan uca şifreli tasarım: `MIMARI-v2-ortak-defter.md` (
 ## Akışlar
 
 **Anı ekle**
-1. Fotoğraf 2048px JPEG'e küçültülür. Orijinal kopyalanmaz, galerideki asset ID tutulur.
+1. Fotoğraf uzun kenarı 1536px, kalite 0,80 JPEG'e küçültülür (~400 KB). Orijinal kopyalanmaz, galerideki asset ID tutulur.
 2. `POST /v1/draw` → Worker fırça düşer, Gemini'yi çağırır, PNG döner. Fotoğraf ve çizim saklanmaz. Sadece çağrının token sayısı ve tutarı `gemini_calls` tablosuna yazılır.
 3. Çizim ve 256px küçüğü dosyaya yazılır, anı satırı Evolu'ya girer.
 

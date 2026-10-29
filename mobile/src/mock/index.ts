@@ -10,6 +10,7 @@ import { mockToday } from './today';
 export { drawings, photos, type DrawingKey } from './images';
 export {
   addMemory,
+  applyBalance,
   createNotebook,
   deleteNotebook,
   eraseEverything,
@@ -29,7 +30,8 @@ export {
   restoreMockData,
   setPaywallDue,
   setScenario,
-  spendBrush,
+  hasBrush,
+  refreshBrushes,
   startFirstDrawing,
   startJournal,
   startOffer,

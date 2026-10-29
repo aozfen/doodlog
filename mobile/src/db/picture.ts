@@ -1,5 +1,8 @@
-// Pictures are saved as text. Bundled mock images become "drawing:<key>" / "photo:<key>",
-// real pictures keep their file URI.
+// Pictures are saved as text. Bundled mock images become "drawing:<key>" / "photo:<key>".
+// Files in the app's documents become "doc:<relative path>": iOS moves the documents folder
+// on updates, so the full URI would break. Other pictures keep their URI.
+import { Paths } from 'expo-file-system';
+
 import { drawings, photos } from '@/mock/images';
 import type { Picture } from '@/types';
 
@@ -22,8 +25,18 @@ export function toPictureRef(picture: Picture): string {
     if (!ref) throw new Error('Unknown bundled picture');
     return ref;
   }
-  if (typeof picture === 'object' && picture && 'uri' in picture && picture.uri) return picture.uri;
+  if (typeof picture === 'object' && picture && 'uri' in picture && picture.uri) {
+    const docs = Paths.document.uri;
+    return picture.uri.startsWith(docs) ? DOC_PREFIX + picture.uri.slice(docs.length) : picture.uri;
+  }
   throw new Error('Picture has no URI');
 }
 
-export const fromPictureRef = (ref: string): Picture => assetOfRef.get(ref) ?? { uri: ref };
+const DOC_PREFIX = 'doc:';
+
+export function fromPictureRef(ref: string): Picture {
+  const bundled = assetOfRef.get(ref);
+  if (bundled !== undefined) return bundled;
+  if (ref.startsWith(DOC_PREFIX)) return { uri: Paths.document.uri + ref.slice(DOC_PREFIX.length) };
+  return { uri: ref };
+}

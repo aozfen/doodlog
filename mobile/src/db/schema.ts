@@ -51,8 +51,8 @@ export const Schema = {
     jobStartedAt: Evolu.nullOr(Evolu.NonNegativeInt),
     jobEndsAt: Evolu.nullOr(Evolu.NonNegativeInt),
     jobStatus: Evolu.nullOr(JobStatus),
+    jobRequestId: Evolu.nullOr(Evolu.NonEmptyTrimmedString100),
   },
 };
-
 
 export const profileId = Evolu.createIdFromString<'Profile'>('profile');

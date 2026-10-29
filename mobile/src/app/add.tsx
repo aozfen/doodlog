@@ -10,6 +10,7 @@ import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,26 +19,27 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { NewNotebookSheet } from '@/components/notebook/new-notebook-sheet';
 import { NotebookPicker } from '@/components/notebook/notebook-picker';
 import { Button, Chip, Field, Flat, IconButton, ProgressBar, ProgressFill, Sticker, Tag, Text } from '@/components/ui';
-import { DRAW_MS } from '@/constants';
+import { EXPECTED_DRAW_MS, REVEAL_MS, SCREEN_POP_MS } from '@/constants';
 import { useSheet } from '@/hooks/use-sheet';
 import { useUser } from '@/hooks/use-store';
-import { comingSoon, noBrushes } from '@/lib/alerts';
+import { comingSoon, drawFailed, noBrushes } from '@/lib/alerts';
 import { drawingPop } from '@/lib/animations';
 import { dayMonth, toIsoDay } from '@/lib/date';
+import { DrawError, drawPhoto, newRequestId } from '@/lib/drawing';
 import {
   addMemory,
-  drawings,
+  applyBalance,
   getNotebook,
+  getNotebooks,
   guessNotebook,
+  hasBrush,
   isDrawingKey,
   mockToday,
   photos,
-  spendBrush,
-  todayPhotos,
   totalBrushes,
-  type DrawingKey,
 } from '@/mock';
 import { colors, space } from '@/theme';
+import type { Picture } from '@/types';
 
 // The package's class types do not match React 19 types yet, so it is retyped here.
 const MaskedView = RNMaskedView as unknown as ComponentType<MaskedViewProps>;
@@ -45,28 +47,45 @@ const MaskedView = RNMaskedView as unknown as ComponentType<MaskedViewProps>;
 // Paint reveal: a mask with a solid top and a soft band at its bottom edge slides down.
 const SIZE = 300;
 const BAND = 90; // height of the soft edge
+/** The bar reaches this in the expected time, then keeps creeping, so it never looks stuck. */
+const EXPECTED_PROGRESS = 0.75;
+const LATE_PROGRESS = 0.95;
+const LATE_MS = 45_000;
+
+/** The photo to draw: a bundled mock photo key, or a picked file URI. */
+function usePhotoParam() {
+  const params = useLocalSearchParams<{ photo?: string; notebook?: string }>();
+  const key = params.photo && isDrawingKey(params.photo) ? params.photo : undefined;
+  const photo: Picture | undefined = key ? photos[key] : params.photo ? { uri: params.photo } : undefined;
+  const guessed = key ? guessNotebook(key) : getNotebooks()[0]?.id;
+  const notebookId = params.notebook && getNotebook(params.notebook) ? params.notebook : guessed;
+  // Picked photos are not kept: the gallery asset id comes with the redraw feature.
+  return { photo, keepPhoto: key ? photo : undefined, notebookId };
+}
 
 // Add memory, steps 2 and 3: "Çiziliyor…" then "Hazır". Design: design/a-ekle.html.
 // Notebook and date are prefilled from the photo, nothing is asked.
 export default function AddMemoryScreen() {
-  const params = useLocalSearchParams<{ photo?: string; notebook?: string }>();
-  const photo = params.photo && isDrawingKey(params.photo) ? params.photo : todayPhotos[0];
-  const notebookId = params.notebook && getNotebook(params.notebook) ? params.notebook : guessNotebook(photo);
-  const [phase, setPhase] = useState<'drawing' | 'ready'>('drawing');
+  const { photo, keepPhoto, notebookId } = usePhotoParam();
+  const [drawing, setDrawing] = useState<Picture>();
   const [round, setRound] = useState(0); // 0 = first drawing, 1+ = redraws
-  // Stable callback so the drawing animation does not restart on re-render.
-  const done = useCallback(() => setPhase('ready'), []);
+  // Stable callback so the drawing request does not restart on re-render.
+  const done = useCallback((result: Picture) => setDrawing(result), []);
 
-  if (phase === 'drawing') {
-    return <Drawing key={round} photo={photo} notebookId={notebookId} round={round} onDone={done} />;
+  if (!photo) return null;
+  if (!drawing) {
+    return (
+      <Drawing key={round} photo={photo} keepPhoto={keepPhoto} notebookId={notebookId} round={round} onDone={done} />
+    );
   }
   return (
     <Ready
-      photo={photo}
+      drawing={drawing}
+      photo={keepPhoto}
       notebookId={notebookId}
       onRedraw={() => {
+        setDrawing(undefined);
         setRound((r) => r + 1);
-        setPhase('drawing');
       }}
     />
   );
@@ -74,67 +93,112 @@ export default function AddMemoryScreen() {
 
 function Drawing({
   photo,
+  keepPhoto,
   notebookId,
   round,
   onDone,
 }: {
-  photo: DrawingKey;
-  notebookId: string;
+  photo: Picture;
+  keepPhoto?: Picture;
+  notebookId?: string;
   /** 0 = first drawing, 1+ = redraws. Every one costs 1 fırça. */
   round: number;
-  onDone: () => void;
+  onDone: (drawing: Picture) => void;
 }) {
   const insets = useSafeAreaInsets();
-  const p = useSharedValue(0);
-  const notebook = getNotebook(notebookId);
+  const bar = useSharedValue(0);
+  const reveal = useSharedValue(0);
+  const [drawing, setDrawing] = useState<Picture>();
+  /** Past the expected time: say it is nearly done instead of looking stuck. */
+  const [late, setLate] = useState(false);
+  const notebook = notebookId ? getNotebook(notebookId) : undefined;
   const user = useUser();
 
   useEffect(() => {
-    p.value = withTiming(1, { duration: DRAW_MS, easing: Easing.inOut(Easing.quad) }, (done) => {
-      if (done) scheduleOnRN(onDone);
-    });
-    return () => cancelAnimation(p);
-  }, [p, onDone]);
+    let open = true;
+    bar.value = withSequence(
+      withTiming(EXPECTED_PROGRESS, { duration: EXPECTED_DRAW_MS, easing: Easing.out(Easing.quad) }),
+      withTiming(LATE_PROGRESS, { duration: LATE_MS, easing: Easing.linear }),
+    );
+    const lateTimer = setTimeout(() => setLate(true), EXPECTED_DRAW_MS);
+    drawPhoto(photo, newRequestId())
+      .then(({ drawing: result, brushes }) => {
+        applyBalance(brushes);
+        if (!open) {
+          // Closed while drawing: the brush is spent, so the drawing is kept as today's memory.
+          if (notebookId) {
+            addMemory({ notebookId, date: toIsoDay(mockToday), note: '', drawing: result, photo: keepPhoto });
+          }
+          return;
+        }
+        setDrawing(result);
+        bar.value = withTiming(1, { duration: REVEAL_MS });
+        reveal.value = withTiming(1, { duration: REVEAL_MS, easing: Easing.inOut(Easing.quad) }, (finished) => {
+          if (finished) scheduleOnRN(onDone, result);
+        });
+      })
+      .catch((error: unknown) => {
+        const kind = error instanceof DrawError ? error.kind : 'failed';
+        if (error instanceof DrawError && error.brushes) applyBalance(error.brushes);
+        if (!open) return;
+        if (kind === 'no_brushes') {
+          router.back();
+          setTimeout(noBrushes, SCREEN_POP_MS);
+          return;
+        }
+        drawFailed(kind, () => router.back());
+      });
+    return () => {
+      open = false;
+      clearTimeout(lateTimer);
+      cancelAnimation(bar);
+      cancelAnimation(reveal);
+    };
+    // One request per mount: a redraw mounts a new Drawing (see `key`).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Photo fades out while the drawing is painted from top to bottom.
   const photoStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(p.value, [0.1, 0.8], [1, 0], 'clamp'),
-    transform: [{ scale: interpolate(p.value, [0.1, 0.8], [1, 0.94], 'clamp') }],
+    opacity: interpolate(reveal.value, [0, 0.8], [1, 0], 'clamp'),
+    transform: [{ scale: interpolate(reveal.value, [0, 0.8], [1, 0.94], 'clamp') }],
   }));
   const maskStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: interpolate(p.value, [0.08, 0.9], [-(SIZE + BAND), 0], 'clamp') }],
+    transform: [{ translateY: interpolate(reveal.value, [0, 0.9], [-(SIZE + BAND), 0], 'clamp') }],
   }));
-  const barStyle = useAnimatedStyle(() => ({ width: `${interpolate(p.value, [0, 0.9], [4, 100], 'clamp')}%` }));
+  const barStyle = useAnimatedStyle(() => ({ width: `${interpolate(bar.value, [0, 1], [4, 100], 'clamp')}%` }));
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 12 }]}>
       <View style={styles.top}>
         <IconButton icon="x" label="Kapat" onPress={() => router.back()} />
-        {/* Every drawing, redraws too, costs 1 fırça. It is spent before this screen opens. */}
+        {/* Every drawing, redraws too, costs 1 fırça. The server spends it. */}
         <Chip icon="brush" label={String(totalBrushes(user))} />
       </View>
 
       <View style={styles.reveal}>
         <Animated.View style={[styles.photo, photoStyle]}>
-          <Image source={photos[photo]} style={StyleSheet.absoluteFill} contentFit="cover" />
+          <Image source={photo} style={StyleSheet.absoluteFill} contentFit="cover" />
         </Animated.View>
-        <MaskedView
-          style={styles.paint}
-          maskElement={
-            <Animated.View style={[styles.mask, maskStyle]}>
-              <View style={{ height: SIZE, backgroundColor: colors.black }} />
-              <LinearGradient colors={[colors.black, 'transparent']} style={{ height: BAND }} />
-            </Animated.View>
-          }>
-          <Sticker source={drawings[photo]} style={{ width: SIZE, height: SIZE }} />
-        </MaskedView>
+        {drawing ? (
+          <MaskedView
+            style={styles.paint}
+            maskElement={
+              <Animated.View style={[styles.mask, maskStyle]}>
+                <View style={{ height: SIZE, backgroundColor: colors.black }} />
+                <LinearGradient colors={[colors.black, 'transparent']} style={{ height: BAND }} />
+              </Animated.View>
+            }>
+            <Sticker source={drawing} style={{ width: SIZE, height: SIZE }} />
+          </MaskedView>
+        ) : null}
       </View>
 
       <Text variant="hand" style={styles.title}>
         {round > 0 ? 'Yeniden çiziliyor…' : 'Çiziliyor…'}
       </Text>
       <Text variant="sub" style={{ textAlign: 'center', marginTop: 8 }}>
-        {notebook ? `${notebook.name} defterine çiziliyor` : 'Çizgiler atılıyor'}
+        {late ? 'Son rötuşlar yapılıyor' : notebook ? `${notebook.name} defterine çiziliyor` : 'Çizgiler atılıyor'}
       </Text>
       <ProgressBar style={styles.track}>
         <Animated.View style={[{ height: '100%' }, barStyle]}>
@@ -142,32 +206,35 @@ function Drawing({
         </Animated.View>
       </ProgressBar>
       <Text variant="sub" style={{ textAlign: 'center', marginTop: 14, fontSize: 12 }}>
-        Kapatabilirsin, bitince haber veririz.
+        Kapatabilirsin, bitince deftere eklenir.
       </Text>
     </View>
   );
 }
 
 function Ready({
+  drawing,
   photo,
   notebookId: initialNotebookId,
   onRedraw,
 }: {
-  photo: DrawingKey;
-  notebookId: string;
+  drawing: Picture;
+  /** Kept with the memory. Undefined for picked photos (see usePhotoParam). */
+  photo?: Picture;
+  notebookId?: string;
   onRedraw: () => void;
 }) {
   const insets = useSafeAreaInsets();
   const [notebookId, setNotebookId] = useState(initialNotebookId);
   const sheet = useSheet<'picker' | 'newNotebook'>();
   const [note, setNote] = useState('');
-  const notebook = getNotebook(notebookId);
+  const notebook = notebookId ? getNotebook(notebookId) : undefined;
   const footBottom = Math.max(insets.bottom, 20) + 10;
 
   const redraw = () => {
     Alert.alert('Tekrar çiz', '1 fırça harcanır.', [
       { text: 'Vazgeç', style: 'cancel' },
-      { text: 'Çiz · 1 fırça', onPress: () => (spendBrush() ? onRedraw() : noBrushes()) },
+      { text: 'Çiz · 1 fırça', onPress: () => (hasBrush() ? onRedraw() : noBrushes()) },
     ]);
   };
 
@@ -188,7 +255,7 @@ function Ready({
         <Animated.View entering={drawingPop}>
           {/* Flat: nothing happens on tap, so it must not look pressable. */}
           <Flat style={styles.art}>
-            <Sticker source={drawings[photo]} style={{ width: 270, height: 270 }} />
+            <Sticker source={drawing} style={{ width: 270, height: 270 }} />
           </Flat>
         </Animated.View>
 
@@ -220,8 +287,8 @@ function Ready({
               notebookId: notebook.id,
               date: toIsoDay(mockToday),
               note,
-              drawing: drawings[photo],
-              photo: photos[photo],
+              drawing,
+              photo,
             });
             // Back to where "Anı ekle" was opened.
             router.back();

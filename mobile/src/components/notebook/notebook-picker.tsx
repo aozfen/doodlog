@@ -10,7 +10,8 @@ import { colors } from '@/theme';
 
 type Props = {
   visible: boolean;
-  selected: string;
+  /** Undefined when no notebook is chosen yet. */
+  selected?: string;
   onSelect: (id: string) => void;
   onClose: () => void;
   onNew?: () => void;
