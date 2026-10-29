@@ -4,7 +4,9 @@ import { DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { ToastProvider } from '@/components/ui';
 import { loadStore } from '@/mock';
 import { colors } from '@/theme';
 
@@ -31,25 +33,30 @@ export default function RootLayout() {
   if (!loaded) return null;
 
   return (
-    <ThemeProvider value={navTheme}>
-      <StatusBar style="dark" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
-        <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
-        <Stack.Screen
-          name="first-drawing"
-          options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
-        />
-        <Stack.Screen name="offer" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
-        <Stack.Screen name="add" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
-        <Stack.Screen
-          name="share/[id]"
-          options={{
-            presentation: 'fullScreenModal',
-            animation: 'slide_from_bottom',
-            contentStyle: { backgroundColor: colors.ink },
-          }}
-        />
-      </Stack>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={navTheme}>
+        <StatusBar style="dark" />
+        {/* Above every screen: a toast shown while a screen closes still appears. */}
+        <ToastProvider>
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }}>
+            <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
+            <Stack.Screen
+              name="first-drawing"
+              options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom', gestureEnabled: false }}
+            />
+            <Stack.Screen name="offer" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
+            <Stack.Screen name="add" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+            <Stack.Screen
+              name="share/[id]"
+              options={{
+                presentation: 'fullScreenModal',
+                animation: 'slide_from_bottom',
+                contentStyle: { backgroundColor: colors.ink },
+              }}
+            />
+          </Stack>
+        </ToastProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

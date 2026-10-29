@@ -177,9 +177,11 @@ type PhotoProps = {
   /** Missing on a retry: the notebook already exists, so there is no way back. */
   onBack?: () => void;
   onPick: () => void;
+  /** Developer only: skips the gallery and the server with the sample drawing. */
+  onDevSkip?: () => void;
 };
 
-export function PhotoStep({ kind, onBack, onPick }: PhotoProps) {
+export function PhotoStep({ kind, onBack, onPick, onDevSkip }: PhotoProps) {
   const retry = !onBack;
   const copy = ONBOARDING_COPY[kind];
   const photo = photos[copy.sample];
@@ -192,6 +194,7 @@ export function PhotoStep({ kind, onBack, onPick }: PhotoProps) {
           <Text variant="sub" style={{ textAlign: 'center', fontSize: 12 }}>
             Sadece seçtiğin fotoğrafı görürüz.
           </Text>
+          {onDevSkip ? <TextButton label="Geç (dev)" onPress={onDevSkip} /> : null}
         </>
       }
       footOrder={5}>

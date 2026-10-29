@@ -5,19 +5,29 @@ import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { TOAST_MS, UNDO_TOAST_MS } from '@/constants';
 import { colors, fonts, space } from '@/theme';
 
+import { Countdown } from './countdown';
 import { Icon } from './icon';
 import { Text } from './text';
 
 type ToastAction = { label: string; onPress: () => void };
 type ToastState = { id: number; message: string; action?: ToastAction };
 
-const Ctx = createContext<{ show: (message: string, action?: ToastAction) => void }>({ show: () => {} });
+type ToastApi = {
+  show: (message: string, action?: ToastAction) => void;
+  /**
+   * "Geri al" toast with the countdown ring. The caller's own work (for example a delete) must
+   * become final after UNDO_TOAST_MS, the same time the toast stays.
+   */
+  undo: (message: string, onUndo: () => void) => void;
+};
+
+const Ctx = createContext<ToastApi>({ show: () => {}, undo: () => {} });
 
 /** Shows a toast above the bottom bar. It outlives the screen that showed it. */
 export const useToast = () => useContext(Ctx);
 
 // One toast at a time: a new one replaces the old one. With an action ("Geri al")
-// it stays longer, so there is time to tap it.
+// it stays longer, so there is time to tap it, and counts the seconds down.
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastState | null>(null);
 
@@ -30,7 +40,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const show = useCallback((message: string, action?: ToastAction) => {
     setToast({ id: Date.now(), message, action });
   }, []);
-  const value = useMemo(() => ({ show }), [show]);
+  const undo = useCallback(
+    (message: string, onUndo: () => void) => show(message, { label: 'Geri al', onPress: onUndo }),
+    [show],
+  );
+  const value = useMemo(() => ({ show, undo }), [show, undo]);
 
   return (
     <Ctx.Provider value={value}>
@@ -42,7 +56,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           exiting={FadeOut.duration(200)}
           style={styles.toast}
           accessibilityLiveRegion="polite">
-          {toast.action ? null : <Icon name="check" size={20} color={colors.okOnDark} strokeWidth={2.5} />}
+          {toast.action ? (
+            <Countdown duration={UNDO_TOAST_MS} />
+          ) : (
+            <Icon name="check" size={20} color={colors.okOnDark} strokeWidth={2.5} />
+          )}
           <Text style={styles.text}>{toast.message}</Text>
           {toast.action ? <ActionButton action={toast.action} onDone={() => setToast(null)} /> : null}
         </Animated.View>

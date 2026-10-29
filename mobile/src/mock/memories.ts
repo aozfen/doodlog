@@ -5,7 +5,7 @@ import type { Memory } from '@/types';
 
 import { drawings, photos, type DrawingKey } from './images';
 import { NOTEBOOK_OF } from './notebooks';
-import { mockToday } from './today';
+import { SEED_TODAY } from './today';
 
 type Seed = [day: number, drawing: DrawingKey, note: string];
 
@@ -44,7 +44,7 @@ function seedYear(year: number): Memory[] {
   const out: Memory[] = [];
   for (let m = 0; m < 12; m++) {
     for (let d = 1; d <= daysInMonth(year, m); d++) {
-      if (new Date(year, m, d) > mockToday) return out;
+      if (new Date(year, m, d) > SEED_TODAY) return out;
       let seed: Seed | undefined;
       if (m === 9) seed = OCTOBER.find((s) => s[0] === d);
       else if (rand(m, d) < 0.27) {

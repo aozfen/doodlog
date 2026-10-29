@@ -27,6 +27,9 @@ export type Memory = {
   photo?: Picture;
 };
 
+/** Memories of each ISO day, oldest first. A day can hold several (morning and evening). */
+export type DayMap = Map<string, Memory[]>;
+
 export type NotebookStats = {
   count: number;
   thisWeek: number;

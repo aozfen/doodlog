@@ -33,7 +33,7 @@ export function ReadyStep({ memory, notebookName, onContinue, onShare }: ReadyPr
   const [saved, setSaved] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const today = parseIsoDay(memory.date);
-  const byDay = new Map([[memory.date, memory]]);
+  const byDay = new Map([[memory.date, [memory]]]);
 
   const save = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

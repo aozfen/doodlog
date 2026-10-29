@@ -3,14 +3,14 @@ import { StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/ui';
 import { MONTH_NAMES } from '@/lib/date';
-import type { Memory } from '@/types';
+import type { DayMap, Memory } from '@/types';
 
 import { MonthGrid } from './month-grid';
 
 type Props = {
   year: number;
   month: number; // 0-based
-  byDay: Map<string, Memory>;
+  byDay: DayMap;
   today: Date;
   /** Right side of the title row, e.g. "8 / 31 gün". */
   summary: string;

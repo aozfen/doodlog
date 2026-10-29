@@ -15,7 +15,7 @@ import Animated, {
 import { Text } from '@/components/ui';
 import { WEEKDAYS, daysInMonth, isSameDay, isoDay, mondayIndex } from '@/lib/date';
 import { colors, fonts, radius, space } from '@/theme';
-import type { Memory } from '@/types';
+import type { DayMap, Memory } from '@/types';
 
 const GAP = 4;
 const ROW_GAP = 8;
@@ -23,7 +23,7 @@ const ROW_GAP = 8;
 type Props = {
   year: number;
   month: number; // 0-based
-  byDay: Map<string, Memory>;
+  byDay: DayMap;
   today: Date;
   onDayPress?: (m: Memory) => void;
   /** ISO day whose drawing lands in with an animation (just saved). */
@@ -43,13 +43,14 @@ export function MonthGrid({ year, month, byDay, today, onDayPress, landingDay }:
   for (let d = 1; d <= days; d++) {
     const date = new Date(year, month, d);
     const iso = isoDay(year, month, d);
-    const mem = byDay.get(iso);
+    const day = byDay.get(iso);
     cells.push(
       <Day
         key={d}
         day={d}
         size={cell}
-        memory={mem}
+        memory={day?.at(-1)}
+        count={day?.length ?? 0}
         today={isSameDay(date, today)}
         future={date > today}
         onPress={onDayPress}
@@ -78,12 +79,14 @@ function Day({
   memory,
   today,
   future,
+  count,
   onPress,
   landing = false,
 }: {
   day: number;
   size: number;
   memory?: Memory;
+  count: number;
   today: boolean;
   future: boolean;
   onPress?: (m: Memory) => void;
@@ -118,7 +121,7 @@ function Day({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${day}, ${memory.note}`}
+      accessibilityLabel={count > 1 ? `${day}, ${count} anı` : `${day}, ${memory.note}`}
       onPressIn={() => Haptics.selectionAsync()}
       onPress={() => onPress?.(memory)}
       style={{ width: size, height: h + 3 }}>
@@ -136,6 +139,11 @@ function Day({
             <View style={styles.badge}>
               <Text style={styles.badgeNum}>{day}</Text>
             </View>
+            {count > 1 ? (
+              <View style={styles.count}>
+                <Text style={styles.countNum}>{count}</Text>
+              </View>
+            ) : null}
           </View>
         </>
       )}
@@ -239,4 +247,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   badgeNum: { fontFamily: fonts.heavy, fontSize: 11, lineHeight: 15 },
+  // More than one memory that day: small red count in the opposite corner.
+  count: {
+    position: 'absolute',
+    top: 3,
+    right: 3,
+    minWidth: 15,
+    backgroundColor: colors.red,
+    borderRadius: 8,
+    paddingHorizontal: 3,
+    alignItems: 'center',
+  },
+  countNum: { fontFamily: fonts.heavy, fontSize: 10, lineHeight: 15, color: colors.surface },
 });

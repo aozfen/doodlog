@@ -122,14 +122,16 @@ export default function OnboardingScreen() {
 
   // The picked photo is drawn in the background while the questions are asked.
   // A retry (after a failure) keeps the notebook and skips the questions already answered.
-  const pickPhoto = async () => {
+  // Developer only: `skip` uses the sample photo and drawing, without the gallery or the server.
+  const pickPhoto = async (skip = false) => {
     if (!kind) return;
-    const photo = await pickFromGallery();
+    const sample = ONBOARDING_COPY[kind].sample;
+    const photo = skip ? (photos[sample] ?? drawings[sample]) : await pickFromGallery();
     if (!photo) return;
     const retry = notebookId !== null;
     const id = notebookId ?? startJournal(notebookName.trim(), kind).id;
     setNotebookId(id);
-    const started = startFirstDrawing(id, photo);
+    const started = startFirstDrawing(id, photo, skip ? drawings[sample] : undefined);
     progress.set(0);
     progress.set(withTiming(1, { duration: started.endsAt - started.startedAt, easing: Easing.inOut(Easing.quad) }));
     setStayed(false);
@@ -201,7 +203,14 @@ export default function OnboardingScreen() {
         );
       case 'photo':
         return (
-          kind && <PhotoStep kind={kind} onBack={notebookId ? undefined : () => setStep('kind')} onPick={pickPhoto} />
+          kind && (
+            <PhotoStep
+              kind={kind}
+              onBack={notebookId ? undefined : () => setStep('kind')}
+              onPick={() => pickPhoto()}
+              onDevSkip={__DEV__ ? () => pickPhoto(true) : undefined}
+            />
+          )
         );
       case 'name':
         return (

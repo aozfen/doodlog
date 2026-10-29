@@ -24,7 +24,16 @@ import { useSheet } from '@/hooks/use-sheet';
 import { comingSoon } from '@/lib/alerts';
 import { cancelReminders, ensureNotificationPermission, scheduleReminders, showNotificationsOff } from '@/lib/notifications';
 import { useScenario, useUser } from '@/hooks/use-store';
-import { eraseEverything, restartOnboarding, restoreMockData, setGoal, setReminderAt, setScenario, totalBrushes } from '@/mock';
+import {
+  eraseEverything,
+  restartOnboarding,
+  restoreDeletedDrawings,
+  restoreMockData,
+  setGoal,
+  setReminderAt,
+  setScenario,
+  totalBrushes,
+} from '@/mock';
 import { colors, fonts, space } from '@/theme';
 import type { DrawScenario } from '@/types';
 
@@ -199,6 +208,16 @@ export default function SettingsScreen() {
               onPress={() => {
                 restartOnboarding();
                 router.replace(routes.onboarding);
+              }}
+            />
+            <ListItem
+              icon="img"
+              label="Silinen çizimlerimi geri getir"
+              detail="Kendi çizdiğin silinmiş anılar ve defterleri"
+              chevron
+              onPress={async () => {
+                const count = await restoreDeletedDrawings();
+                Alert.alert(count ? `${count} anı geri geldi` : 'Geri getirilecek çizim yok');
               }}
             />
             <ListItem

@@ -4,12 +4,20 @@
 // When sync lands, subscribe to the Evolu queries here so changes from other devices show up.
 import * as Evolu from '@evolu/common';
 
-import { FAIL_DRAW_MS, ONBOARDING_DRAW_MS, SLOW_DRAW_MS } from '@/constants';
-import { evoluPromise, memoriesQuery, notebooksQuery, profileQuery, type Db } from '@/db/evolu';
-import { fromPictureRef, toPictureRef } from '@/db/picture';
+import { FAIL_DRAW_MS, ONBOARDING_DRAW_MS, SLOW_DRAW_MS, UNDO_TOAST_MS } from '@/constants';
+import {
+  deletedMemoriesQuery,
+  deletedNotebooksQuery,
+  evoluPromise,
+  memoriesQuery,
+  notebooksQuery,
+  profileQuery,
+  type Db,
+} from '@/db/evolu';
+import { deletePictureFile, fromPictureRef, isDocRef, pictureFileExists, toPictureRef } from '@/db/picture';
 import { MemoryId, NotebookId, PictureRef, profileId } from '@/db/schema';
 import { fetchBrushes } from '@/lib/api';
-import { dayMonth, toIsoDay } from '@/lib/date';
+import { dayMonth, getToday, toIsoDay } from '@/lib/date';
 import { DrawError, drawPhoto, newRequestId } from '@/lib/drawing';
 import type {
   DrawJob,
@@ -25,7 +33,6 @@ import type {
 
 import { seedMemories } from './memories';
 import { seedNotebooks } from './notebooks';
-import { mockToday } from './today';
 import { newUser, seedUser } from './user';
 
 /**
@@ -51,7 +58,14 @@ type State = {
   paywallDue: boolean;
 };
 
-let state: State = {
+/**
+ * Development only: Fast Refresh runs this module again after an edit. Without this the
+ * screens saw an empty, not onboarded store for a moment and jumped to onboarding, whose
+ * first step then soft-deleted the real data. The loaded state and database survive here.
+ */
+const hot = globalThis as { __doodlogStore?: { state: State; db?: Db } };
+
+let state: State = hot.__doodlogStore?.state ?? {
   notebooks: [],
   memories: [],
   user: newUser(),
@@ -63,12 +77,13 @@ let state: State = {
   paywallDue: false,
 };
 let jobTimer: ReturnType<typeof setTimeout> | undefined;
-let db: Db | undefined;
+let db: Db | undefined = hot.__doodlogStore?.db;
 
 const listeners = new Set<() => void>();
 
 const setState = (next: State) => {
   state = next;
+  if (__DEV__) hot.__doodlogStore = { state, db };
   listeners.forEach((l) => l());
 };
 
@@ -102,7 +117,7 @@ const day = (iso: string) => Evolu.PlainDateIso.orThrow(iso);
 const count = (n: number) => Evolu.NonNegativeInt.orThrow(Math.max(0, Math.round(n)));
 
 function insertNotebook(name: string, kind: NotebookKind): Notebook {
-  const createdAt = toIsoDay(mockToday);
+  const createdAt = toIsoDay(getToday());
   const { id } = getDb().insert('notebook', {
     name: Evolu.NonEmptyTrimmedString100.orThrow(clip(name, 100)),
     kind,
@@ -127,6 +142,45 @@ const setNotebookDeleted = (id: string, deleted: boolean) =>
 
 const setMemoryDeleted = (id: string, deleted: boolean) =>
   getDb().update('memory', { id: MemoryId.orThrow(id), isDeleted: Evolu.booleanToSqliteBoolean(deleted) });
+
+/**
+ * Final step of a delete, once the undo time is over: the note and the drawing and photo
+ * files go, so the memory can never come back. Files still used by another memory, a cover
+ * or the drawing job stay. Evolu keeps only a deleted row without its pictures.
+ */
+function purgeMemories(gone: Memory[]) {
+  gone.forEach((m) => getDb().update('memory', { id: MemoryId.orThrow(m.id), note: null }));
+  const refOf = (picture: Picture | undefined) => (picture ? toPictureRef(picture) : null);
+  const used = new Set(
+    [
+      ...state.memories.flatMap((m) => [m.drawing, m.photo]),
+      ...state.notebooks.map((n) => n.cover),
+      state.job?.drawing,
+      state.job?.photo,
+    ].map(refOf),
+  );
+  gone
+    .flatMap((m) => [refOf(m.drawing), refOf(m.photo)])
+    .forEach((ref) => ref && !used.has(ref) && deletePictureFile(ref));
+}
+
+/**
+ * A delete can be undone while its toast shows. After that the memories are purged.
+ * Returns the undo; it does nothing once the time is over.
+ * If the app closes before that, the rows stay soft-deleted with their files.
+ */
+function undoableDelete(gone: Memory[], restore: () => void) {
+  let purged = false;
+  const timer = setTimeout(() => {
+    purged = true;
+    purgeMemories(gone);
+  }, UNDO_TOAST_MS);
+  return () => {
+    if (purged) return;
+    clearTimeout(timer);
+    restore();
+  };
+}
 
 /** Soft-deletes every notebook and memory in the store. */
 function deleteAllRows() {
@@ -159,9 +213,42 @@ function saveProfile() {
 
 // --- Launch -------------------------------------------------------------------
 
+type NotebookRow = Evolu.InferRow<typeof notebooksQuery>;
+type MemoryRow = Evolu.InferRow<typeof memoriesQuery>;
+
+/** A complete row as a notebook, or nothing. Used with flatMap. */
+const toNotebook = (r: NotebookRow): Notebook[] =>
+  r.name && r.kind && r.createdOn
+    ? [
+        {
+          id: r.id,
+          name: r.name,
+          kind: r.kind,
+          createdAt: r.createdOn,
+          cover: r.cover ? fromPictureRef(r.cover) : undefined,
+        },
+      ]
+    : [];
+
+/** A complete row as a memory, or nothing. Used with flatMap. */
+const toMemory = (r: MemoryRow): Memory[] =>
+  r.notebookId && r.date && r.drawing
+    ? [
+        {
+          id: r.id,
+          notebookId: r.notebookId,
+          date: r.date,
+          note: r.note ?? '',
+          drawing: fromPictureRef(r.drawing),
+          photo: r.photo ? fromPictureRef(r.photo) : undefined,
+        },
+      ]
+    : [];
+
 /** Opens the database and fills the store. Call once before rendering screens. */
 export async function loadStore() {
   db = await evoluPromise;
+  if (__DEV__) hot.__doodlogStore = { state, db };
   const [notebookRows, memoryRows, profileRows] = await Promise.all([
     db.loadQuery(notebooksQuery),
     db.loadQuery(memoriesQuery),
@@ -174,33 +261,8 @@ export async function loadStore() {
     return;
   }
 
-  const notebooks: Notebook[] = notebookRows.flatMap((r) =>
-    r.name && r.kind && r.createdOn
-      ? [
-          {
-            id: r.id,
-            name: r.name,
-            kind: r.kind,
-            createdAt: r.createdOn,
-            cover: r.cover ? fromPictureRef(r.cover) : undefined,
-          },
-        ]
-      : [],
-  );
-  const memories: Memory[] = memoryRows.flatMap((r) =>
-    r.notebookId && r.date && r.drawing
-      ? [
-          {
-            id: r.id,
-            notebookId: r.notebookId,
-            date: r.date,
-            note: r.note ?? '',
-            drawing: fromPictureRef(r.drawing),
-            photo: r.photo ? fromPictureRef(r.photo) : undefined,
-          },
-        ]
-      : [],
-  );
+  const notebooks = notebookRows.flatMap(toNotebook);
+  const memories = memoryRows.flatMap(toMemory);
 
   const demo = profile.demo === Evolu.sqliteTrue;
   const base = demo ? seedUser : newUser();
@@ -315,7 +377,7 @@ export function createNotebook(name: string, kind: NotebookKind): Notebook {
 /** The first drawing landed: it becomes today's memory and the notebook cover. */
 function finishDrawing(job: DrawJob, drawing: Picture) {
   const { notebookId, photo } = job;
-  const today = toIsoDay(mockToday);
+  const today = toIsoDay(getToday());
   // One memory per day in onboarding: today's earlier memory is replaced.
   const replaced = state.memories.filter((m) => m.date === today);
   replaced.forEach((m) => setMemoryDeleted(m.id, true));
@@ -331,6 +393,8 @@ function finishDrawing(job: DrawJob, drawing: Picture) {
 }
 
 const BUSY_RETRY_MS = 15_000;
+/** Developer skip of the first drawing: long enough to see the questions flow. */
+const DEV_DRAW_MS = 3000;
 const BUSY_RETRIES = 8;
 
 /**
@@ -394,6 +458,11 @@ export function addMemory(memory: Omit<Memory, 'id'>): Memory {
   return saved;
 }
 
+export function setMemoryNote(id: string, note: string) {
+  getDb().update('memory', { id: MemoryId.orThrow(id), note: text1000(note) });
+  setState({ ...state, memories: state.memories.map((m) => (m.id === id ? { ...m, note } : m)) });
+}
+
 /** Onboarding: a fresh account with the first, still empty notebook. */
 export function startJournal(name: string, kind: NotebookKind): Notebook {
   clearTimeout(jobTimer);
@@ -408,8 +477,9 @@ export function startJournal(name: string, kind: NotebookKind): Notebook {
  * Draws the first memory in the background. The result lands in the store even when
  * no screen is open, and becomes the notebook cover.
  * Developer scenarios: "fail" fails once without calling the server, "slow" holds the result.
+ * `devDrawing` (developer only): lands this drawing after a short wait, no server call, no brush.
  */
-export function startFirstDrawing(notebookId: string, photo: Picture): DrawJob {
+export function startFirstDrawing(notebookId: string, photo: Picture, devDrawing?: Picture): DrawJob {
   clearTimeout(jobTimer);
   const { scenario } = state;
   const startedAt = Date.now();
@@ -424,7 +494,9 @@ export function startFirstDrawing(notebookId: string, photo: Picture): DrawJob {
   setState({ ...state, job, scenario: scenario === 'fail' ? 'normal' : scenario });
   saveProfile();
 
-  if (scenario === 'fail') {
+  if (devDrawing !== undefined) {
+    jobTimer = setTimeout(() => finishDrawing(job, devDrawing), DEV_DRAW_MS);
+  } else if (scenario === 'fail') {
     jobTimer = setTimeout(() => {
       setState({ ...state, job: { ...job, status: 'failed' } });
       saveProfile();
@@ -487,6 +559,32 @@ export function restoreMockData() {
   saveProfile();
 }
 
+/**
+ * Developer menu: brings back soft-deleted memories drawn by the user (files in documents,
+ * not bundled mock drawings) and their notebooks. Memories the user deleted lost their file
+ * and stay gone. Returns how many memories came back.
+ */
+export async function restoreDeletedDrawings(): Promise<number> {
+  const evolu = getDb();
+  const [notebookRows, memoryRows] = await Promise.all([
+    evolu.loadQuery(deletedNotebooksQuery),
+    evolu.loadQuery(deletedMemoriesQuery),
+  ]);
+  const memories = memoryRows
+    .filter((r) => r.drawing && isDocRef(r.drawing) && pictureFileExists(r.drawing))
+    .flatMap(toMemory);
+  const notebookIds = new Set(memories.map((m) => m.notebookId));
+  const notebooks = notebookRows.filter((r) => notebookIds.has(r.id)).flatMap(toNotebook);
+  notebooks.forEach((n) => setNotebookDeleted(n.id, false));
+  memories.forEach((m) => setMemoryDeleted(m.id, false));
+  setState({
+    ...state,
+    notebooks: [...state.notebooks, ...notebooks.filter((n) => !state.notebooks.some((o) => o.id === n.id))],
+    memories: [...state.memories, ...memories].sort(byDate),
+  });
+  return memories.length;
+}
+
 /** "Verilerimi sil": everything goes, the app starts over at onboarding. */
 export function eraseEverything() {
   deleteAllRows();
@@ -495,8 +593,9 @@ export function eraseEverything() {
 }
 
 /**
- * Deletes a notebook. Its memories move to `moveTo`, or are deleted without it.
- * Returns an undo that puts the notebook back in place with its memories.
+ * Deletes a notebook. Its memories move to `moveTo`, or are deleted with it.
+ * Returns an undo that puts the notebook back in place with its memories. Without it, the
+ * deleted memories lose their drawings for good once the undo time is over.
  */
 export function deleteNotebook(id: string, moveTo?: string): (() => void) | undefined {
   const evolu = getDb();
@@ -519,7 +618,7 @@ export function deleteNotebook(id: string, moveTo?: string): (() => void) | unde
       : state.memories.filter((m) => m.notebookId !== id),
   });
 
-  return () => {
+  return undoableDelete(moveTo ? [] : owned, () => {
     setNotebookDeleted(id, false);
     owned.forEach((m) =>
       evolu.update('memory', {
@@ -536,5 +635,31 @@ export function deleteNotebook(id: string, moveTo?: string): (() => void) | unde
       notebooks,
       memories: [...state.memories.filter((m) => !ownedIds.has(m.id)), ...owned].sort(byDate),
     });
+  });
+}
+
+/**
+ * Deletes a memory. When its drawing was the notebook cover, the newest drawing left takes
+ * its place. Returns an undo; once the undo time is over the drawing and photo go for good.
+ */
+export function deleteMemory(id: string): (() => void) | undefined {
+  const memory = state.memories.find((m) => m.id === id);
+  if (!memory) return undefined;
+  const owner = state.notebooks.find((n) => n.id === memory.notebookId);
+  const setCover = (cover: Picture | undefined) => {
+    if (!owner) return;
+    getDb().update('notebook', { id: NotebookId.orThrow(owner.id), cover: cover ? pictureRef(cover) : null });
+    setState({ ...state, notebooks: state.notebooks.map((n) => (n.id === owner.id ? { ...n, cover } : n)) });
   };
+
+  setMemoryDeleted(id, true);
+  setState({ ...state, memories: state.memories.filter((m) => m.id !== id) });
+  const wasCover = owner?.cover && toPictureRef(owner.cover) === toPictureRef(memory.drawing);
+  if (wasCover) setCover(state.memories.filter((m) => m.notebookId === owner.id).at(-1)?.drawing);
+
+  return undoableDelete([memory], () => {
+    setMemoryDeleted(id, false);
+    setState({ ...state, memories: [...state.memories, memory].sort(byDate) });
+    if (wasCover) setCover(memory.drawing);
+  });
 }

@@ -17,17 +17,9 @@ import { OfferBadge } from '@/components/paywall/offer-badge';
 import { Avatar, Chip, Text } from '@/components/ui';
 import { PAYWALL_DELAY_MS, SHEET_SWAP_MS, routes } from '@/constants';
 import { useDrawJob, useMemories, useNotebooks, usePaywallDue, useUser } from '@/hooks/use-store';
-import { longDay } from '@/lib/date';
+import { getToday, longDay } from '@/lib/date';
 import { notebookStatus } from '@/lib/notebook-stats';
-import {
-  getNotebook,
-  getOnThisDayMemory,
-  getTodayMemory,
-  mockToday,
-  setPaywallDue,
-  statsOf,
-  totalBrushes,
-} from '@/mock';
+import { getNotebook, getOnThisDayMemory, getTodayMemory, setPaywallDue, statsOf, totalBrushes } from '@/mock';
 import { space } from '@/theme';
 
 // Home. No info or notice cards here: only today, "1 yıl önce" and notebooks.
@@ -72,7 +64,7 @@ export default function HomeScreen() {
         </View>
       </View>
       <Text variant="sub" style={{ marginTop: 4 }} onLongPress={() => setShowToday((v) => !v)}>
-        {longDay(mockToday)}
+        {longDay(getToday())}
       </Text>
 
       {/* Only while the exit offer runs. After the greeting, where the eye goes next. */}

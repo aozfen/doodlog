@@ -18,12 +18,13 @@ import { useSheet } from '@/hooks/use-sheet';
 import { useMemories, useNotebooks, useUser } from '@/hooks/use-store';
 import { comingSoon } from '@/lib/alerts';
 import { track } from '@/lib/analytics';
-import { dayMonth, daysInMonth, isSameDay, parseIsoDay, recentMonths } from '@/lib/date';
+import { dayMonth, daysInMonth, getToday, isSameDay, parseIsoDay, recentMonths } from '@/lib/date';
+import { countDays, groupByDay } from '@/lib/days';
 import { notebookStats } from '@/lib/notebook-stats';
 import { withDative } from '@/lib/text';
-import { deleteNotebook, getNotebook, mockToday } from '@/mock';
+import { deleteNotebook, getNotebook } from '@/mock';
 import { colors, space } from '@/theme';
-import type { Memory } from '@/types';
+import type { Memory, Picture } from '@/types';
 
 type SheetName = 'menu' | 'cover' | 'delete' | 'invite';
 
@@ -38,19 +39,22 @@ export default function NotebookScreen() {
   const memories = useMemories();
   const notebook = getNotebook(id);
   const [name, setName] = useState(notebook?.name ?? '');
-  const [cover, setCover] = useState(notebook?.cover);
+  /** Cover picked on this page (not saved yet). */
+  const [picked, setCover] = useState<Picture>();
   const [waitlisted, setWaitlisted] = useState(false);
   const sheet = useSheet<SheetName>();
   const toast = useToast();
 
   const list = useMemo(() => memories.filter((m) => m.notebookId === id), [memories, id]);
-  const byDay = useMemo(() => new Map(list.map((m) => [m.date, m])), [list]);
-  const stats = useMemo(() => notebookStats(list, mockToday), [list]);
+  const byDay = useMemo(() => groupByDay(list), [list]);
+  const stats = useMemo(() => notebookStats(list, getToday()), [list]);
   const invite = notebook ? NOTEBOOK_KINDS[notebook.kind].invite : null;
   const last = list.at(-1);
+  // A picked cover whose memory was deleted no longer counts; the store keeps its own cover up to date.
+  const cover = (picked && list.some((m) => m.drawing === picked) ? picked : undefined) ?? notebook?.cover;
   // Picked cover, else the newest drawing. undefined while the notebook is empty.
   const shownCover = cover ?? last?.drawing;
-  const moveTarget = notebooks.find((n) => n.id !== id);
+  const moveTargets = useMemo(() => notebooks.filter((n) => n.id !== id), [notebooks, id]);
 
   useEffect(() => {
     if (invite) track(EVENTS.inviteSeen, { kind: notebook?.kind ?? '', source: INVITE_SOURCES.notebookPage });
@@ -64,7 +68,7 @@ export default function NotebookScreen() {
     );
   }
 
-  const openMemory = (m: Memory) => router.push(routes.memory(m.id));
+  const openMemory = (m: Memory) => router.push(routes.memory(m.id, notebook.id));
   const rename = () =>
     Alert.prompt(
       'Defterin adı',
@@ -101,17 +105,19 @@ export default function NotebookScreen() {
         </View>
 
         {!last ? (
-          <EmptyNotebook notebook={{ ...notebook, name }} today={mockToday} onAdd={() => addMemory(notebook.id)} />
+          <EmptyNotebook notebook={{ ...notebook, name }} today={getToday()} onAdd={() => addMemory(notebook.id)} />
         ) : (
           <NotebookHero name={name} cover={shownCover ?? last.drawing} stats={stats} />
         )}
 
         {last &&
-          recentMonths(mockToday, MONTHS_SHOWN).map(({ year, month }, i) => {
-            const filled = list.filter((m) => {
-              const d = parseIsoDay(m.date);
-              return d.getFullYear() === year && d.getMonth() === month;
-            }).length;
+          recentMonths(getToday(), MONTHS_SHOWN).map(({ year, month }, i) => {
+            const filled = countDays(
+              list.filter((m) => {
+                const d = parseIsoDay(m.date);
+                return d.getFullYear() === year && d.getMonth() === month;
+              }),
+            );
             return (
               <MonthSection
                 key={`${year}-${month}`}
@@ -119,7 +125,7 @@ export default function NotebookScreen() {
                 year={year}
                 month={month}
                 byDay={byDay}
-                today={mockToday}
+                today={getToday()}
                 summary={`${filled} / ${daysInMonth(year, month)} gün`}
                 onDayPress={openMemory}>
                 {/* Newest memory right under the current month. */}
@@ -127,7 +133,7 @@ export default function NotebookScreen() {
                   <SideMemoryCard
                     memory={last}
                     size="m"
-                    label={isSameDay(parseIsoDay(last.date), mockToday) ? 'Bugün' : dayMonth(parseIsoDay(last.date))}
+                    label={isSameDay(parseIsoDay(last.date), getToday()) ? 'Bugün' : dayMonth(parseIsoDay(last.date))}
                     onPress={() => openMemory(last)}
                     style={{ marginTop: 44 }}
                   />
@@ -168,10 +174,10 @@ export default function NotebookScreen() {
         visible={sheet.is('delete')}
         name={name}
         count={stats.count}
-        moveToName={moveTarget?.name}
+        targets={moveTargets}
         onClose={sheet.close}
-        onDelete={(move) => {
-          const target = move ? moveTarget : undefined;
+        onDelete={(moveTo) => {
+          const target = moveTargets.find((n) => n.id === moveTo);
           const message = !stats.count
             ? `${name} silindi.`
             : target
@@ -182,7 +188,7 @@ export default function NotebookScreen() {
             // Delete once the page has slid away, so it never renders a missing notebook.
             setTimeout(() => {
               const undo = deleteNotebook(notebook.id, target?.id);
-              if (undo) toast.show(message, { label: 'Geri al', onPress: undo });
+              if (undo) toast.undo(message, undo);
             }, SCREEN_POP_MS);
           });
         }}

@@ -19,12 +19,12 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { NewNotebookSheet } from '@/components/notebook/new-notebook-sheet';
 import { NotebookPicker } from '@/components/notebook/notebook-picker';
 import { Button, Chip, Field, Flat, IconButton, ProgressBar, ProgressFill, Sticker, Tag, Text } from '@/components/ui';
-import { EXPECTED_DRAW_MS, REVEAL_MS, SCREEN_POP_MS } from '@/constants';
+import { EXPECTED_DRAW_MS, NOTE_MAX, REVEAL_MS, SCREEN_POP_MS } from '@/constants';
 import { useSheet } from '@/hooks/use-sheet';
 import { useUser } from '@/hooks/use-store';
 import { comingSoon, drawFailed, noBrushes } from '@/lib/alerts';
 import { drawingPop } from '@/lib/animations';
-import { dayMonth, toIsoDay } from '@/lib/date';
+import { dayMonth, getToday, toIsoDay } from '@/lib/date';
 import { DrawError, drawPhoto, newRequestId } from '@/lib/drawing';
 import {
   addMemory,
@@ -34,7 +34,6 @@ import {
   guessNotebook,
   hasBrush,
   isDrawingKey,
-  mockToday,
   photos,
   totalBrushes,
 } from '@/mock';
@@ -127,7 +126,7 @@ function Drawing({
         if (!open) {
           // Closed while drawing: the brush is spent, so the drawing is kept as today's memory.
           if (notebookId) {
-            addMemory({ notebookId, date: toIsoDay(mockToday), note: '', drawing: result, photo: keepPhoto });
+            addMemory({ notebookId, date: toIsoDay(getToday()), note: '', drawing: result, photo: keepPhoto });
           }
           return;
         }
@@ -260,7 +259,7 @@ function Ready({
         </Animated.View>
 
         <View style={styles.tags}>
-          <Tag icon="cal" label={dayMonth(mockToday)} onPress={() => comingSoon('Tarihi değiştir')} />
+          <Tag icon="cal" label={dayMonth(getToday())} onPress={() => comingSoon('Tarihi değiştir')} />
           {/* Only the guessed notebook is shown, so the row fits any number of notebooks. */}
           <Tag icon="nb" chevron label={notebook?.name ?? 'Defter seç'} onPress={() => sheet.open('picker')} />
         </View>
@@ -271,7 +270,7 @@ function Ready({
           accessibilityLabel="Not"
           value={note}
           onChangeText={setNote}
-          maxLength={280}
+          maxLength={NOTE_MAX}
           style={{ marginTop: 16 }}
         />
       </ScrollView>
@@ -285,7 +284,7 @@ function Ready({
             if (!notebook) return;
             addMemory({
               notebookId: notebook.id,
-              date: toIsoDay(mockToday),
+              date: toIsoDay(getToday()),
               note,
               drawing,
               photo,

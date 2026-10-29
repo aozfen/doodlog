@@ -3,14 +3,14 @@ import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Chevron, Flat, Sticker, Text } from '@/components/ui';
 import { MONTH_NAMES, MONTH_SHORT, dayMonth, dayName, daysInMonth, isoDay, parseIsoDay, toIsoDay } from '@/lib/date';
 import { colors, fonts, space } from '@/theme';
-import type { Memory, Notebook } from '@/types';
+import type { DayMap, Memory, Notebook } from '@/types';
 
 const LABEL_W = 34;
 const DOT_GAP = 3;
 
 type Props = {
   year: number;
-  byDay: Map<string, Memory>;
+  byDay: DayMap;
   today: Date;
   selected?: string; // iso day
   onSelect?: (m: Memory) => void;
@@ -32,7 +32,7 @@ export function YearMap({ year, byDay, today, selected, onSelect }: Props) {
             {Array.from({ length: daysInMonth(year, m) }, (_, i) => {
               const d = i + 1;
               const iso = isoDay(year, m, d);
-              const mem = byDay.get(iso);
+              const mem = byDay.get(iso)?.at(-1);
               const future = new Date(year, m, d) > today;
               const bg = iso === todayIso ? colors.ink : mem ? colors.red : colors.dot;
               const sq = (

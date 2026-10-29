@@ -18,6 +18,9 @@ export const MONTH_SHORT = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'A
 export const WEEKDAYS = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pz'];
 
 const DAY_MS = 86_400_000;
+
+/** The real current day. Read it at render time, not once at load, so it moves on past midnight. */
+export const getToday = () => new Date();
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /** "2026-10-25". Month is 0-based like Date. */

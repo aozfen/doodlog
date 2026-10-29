@@ -8,16 +8,15 @@ import { MonthGrid } from '@/components/calendar/month-grid';
 import { Button, Field, Icon, Raised, Text, TextButton } from '@/components/ui';
 import { useKeyboardVisible } from '@/hooks/use-keyboard-visible';
 import { DRAW_STAGES, GOAL_ORDER, GOALS, REMINDER_TIMES } from '@/constants';
-import { MONTH_NAMES } from '@/lib/date';
+import { getToday, MONTH_NAMES } from '@/lib/date';
 import { toUpperCaseTr } from '@/lib/text';
-import { mockToday } from '@/mock';
 import { colors, fonts, radius } from '@/theme';
-import type { Goal, Memory } from '@/types';
+import type { DayMap, Goal } from '@/types';
 
 import { Reveal, StepLayout, StepTitle } from './step-layout';
 
 const NAME_MAX = 24;
-const NO_MEMORIES = new Map<string, Memory>();
+const NO_MEMORIES: DayMap = new Map();
 
 type NameProps = {
   status: ReactNode;
@@ -172,7 +171,7 @@ export function WaitStep({ notebookName, progress }: { notebookName: string; pro
       if (next !== prev) scheduleOnRN(setStage, next);
     },
   );
-  const monthLabel = `${MONTH_NAMES[mockToday.getMonth()]} ${mockToday.getFullYear()}`;
+  const monthLabel = `${MONTH_NAMES[getToday().getMonth()]} ${getToday().getFullYear()}`;
 
   return (
     <StepLayout>
@@ -183,7 +182,12 @@ export function WaitStep({ notebookName, progress }: { notebookName: string; pro
         <StepTitle style={{ fontSize: 40, lineHeight: 44, marginTop: 6 }}>İlk anın buraya gelecek</StepTitle>
       </Reveal>
       <Reveal order={1} style={{ marginTop: 22 }}>
-        <MonthGrid year={mockToday.getFullYear()} month={mockToday.getMonth()} byDay={NO_MEMORIES} today={mockToday} />
+        <MonthGrid
+          year={getToday().getFullYear()}
+          month={getToday().getMonth()}
+          byDay={NO_MEMORIES}
+          today={getToday()}
+        />
       </Reveal>
       <View style={styles.stages}>
         {DRAW_STAGES.map((label, i) => (

@@ -53,6 +53,14 @@ export const memoriesQuery = createQuery((db) =>
     .orderBy('createdAt'),
 );
 
+/** Developer recovery: soft-deleted notebooks and memories. */
+export const deletedNotebooksQuery = createQuery((db) =>
+  db.selectFrom('notebook').selectAll().where('isDeleted', 'is', Evolu.sqliteTrue),
+);
+export const deletedMemoriesQuery = createQuery((db) =>
+  db.selectFrom('memory').selectAll().where('isDeleted', 'is', Evolu.sqliteTrue),
+);
+
 export const profileQuery = createQuery((db) =>
   db.selectFrom('profile').selectAll().where('isDeleted', 'is not', Evolu.sqliteTrue).limit(1),
 );

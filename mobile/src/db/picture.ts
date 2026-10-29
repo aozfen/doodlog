@@ -1,7 +1,7 @@
 // Pictures are saved as text. Bundled mock images become "drawing:<key>" / "photo:<key>".
 // Files in the app's documents become "doc:<relative path>": iOS moves the documents folder
 // on updates, so the full URI would break. Other pictures keep their URI.
-import { Paths } from 'expo-file-system';
+import { File, Paths } from 'expo-file-system';
 
 import { drawings, photos } from '@/mock/images';
 import type { Picture } from '@/types';
@@ -34,9 +34,32 @@ export function toPictureRef(picture: Picture): string {
 
 const DOC_PREFIX = 'doc:';
 
+/** The picture is a file the app saved (a real drawing or photo), not a bundled mock image. */
+export const isDocRef = (ref: string) => ref.startsWith(DOC_PREFIX);
+
 export function fromPictureRef(ref: string): Picture {
   const bundled = assetOfRef.get(ref);
   if (bundled !== undefined) return bundled;
   if (ref.startsWith(DOC_PREFIX)) return { uri: Paths.document.uri + ref.slice(DOC_PREFIX.length) };
   return { uri: ref };
+}
+
+/** The saved file is still there. A permanently deleted memory's file is gone. */
+export function pictureFileExists(ref: string) {
+  try {
+    return new File(Paths.document.uri + ref.slice(DOC_PREFIX.length)).exists;
+  } catch {
+    return false;
+  }
+}
+
+/** Removes the picture's file when the app saved it in documents. Bundled images are left alone. */
+export function deletePictureFile(ref: string) {
+  if (!isDocRef(ref)) return;
+  try {
+    const file = new File(Paths.document.uri + ref.slice(DOC_PREFIX.length));
+    if (file.exists) file.delete();
+  } catch {
+    // A file that cannot be removed only takes space; the row is already gone.
+  }
 }

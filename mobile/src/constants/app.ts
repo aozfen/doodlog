@@ -22,6 +22,9 @@ export const MONTHS_SHOWN = 3;
 /** A notebook is "idle" after this many days without a memory. */
 export const IDLE_AFTER_DAYS = 7;
 
+/** Longest note under a drawing. */
+export const NOTE_MAX = 280;
+
 /** Brush packs, sold to everyone (pricing decision). */
 export const BRUSH_PACKS = [
   { amount: 10, price: '$4,99' },
