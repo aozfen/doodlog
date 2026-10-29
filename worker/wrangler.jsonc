@@ -1,0 +1,41 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "doodlog-api",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-09-01",
+	"workers_dev": true,
+	"preview_urls": false,
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "doodlog",
+			// From `wrangler d1 create doodlog`
+			"database_id": "252f08e7-b16d-4a82-a0f2-5725d5c09213",
+			"migrations_dir": "migrations"
+		}
+	],
+	// Per-user limits (see src/draw.ts)
+	"ratelimits": [
+		{
+			"name": "DRAW_LIMITER",
+			"namespace_id": "1001",
+			"simple": {
+				"limit": 10,
+				"period": 60
+			}
+		}
+	],
+	"vars": {
+		"GEMINI_API_BASE": "https://generativelanguage.googleapis.com",
+		"GEMINI_MODEL": "gemini-nano-banana-2.1",
+		// USD per 1M tokens. Cost is written with the price at call time, old rows never change.
+		"PRICE_INPUT": "1.50",
+		"PRICE_IMAGE": "30.00",
+		"PRICE_TEXT": "7.50",
+		// Free brushes for a new user
+		"GIFT_BRUSHES": "3"
+	},
+	"observability": {
+		"enabled": true
+	}
+}

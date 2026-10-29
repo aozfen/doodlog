@@ -10,7 +10,7 @@ Eski ortak defterli, uçtan uca şifreli tasarım: `MIMARI-v2-ortak-defter.md` (
 | Uygulama | Expo, EAS yok (`expo prebuild` + yerel build) |
 | Defter, anı, not | Evolu. MVP'de senkron kapalı |
 | Çizimler | Yerel dosya (`documentDirectory`), Evolu'ya girmez |
-| API | Cloudflare Workers + Hono |
+| API | Cloudflare Workers (`worker/`, düz `fetch` router, snipmind düzeni) |
 | Fırça | D1 |
 | Çizim modeli | Gemini (ücretli API) |
 | Satın alma | RevenueCat → webhook → Worker |
@@ -22,22 +22,22 @@ Eski ortak defterli, uçtan uca şifreli tasarım: `MIMARI-v2-ortak-defter.md` (
 
 **Anı ekle**
 1. Fotoğraf 2048px JPEG'e küçültülür. Orijinal kopyalanmaz, galerideki asset ID tutulur.
-2. `POST /ciz` → Worker fırça düşer, Gemini'yi çağırır, PNG döner. Fotoğraf ve çizim saklanmaz. Sadece çağrının token sayısı ve tutarı `gemini_cagri` tablosuna yazılır.
+2. `POST /v1/draw` → Worker fırça düşer, Gemini'yi çağırır, PNG döner. Fotoğraf ve çizim saklanmaz. Sadece çağrının token sayısı ve tutarı `gemini_calls` tablosuna yazılır.
 3. Çizim ve 256px küçüğü dosyaya yazılır, anı satırı Evolu'ya girer.
 
 **Yeniden çiz**
 - Orijinal asset ID ile galeriden bulunur. Bulunamazsa kullanıcı fotoğrafı yeniden seçer.
-- Her çizimde ilk tekrar ücretsiz (`cizim.ucretsiz_tekrar`).
+- Ücretsiz yeniden çizim yok, her çizim 1 fırça.
 
 **İnternet yok**
 - İstek kuyruğa girer, fırça düşülmez. Bağlantı gelince kendiliğinden gönderilir, bitince bildirim gider.
-- Her istekte `istek_id` olur. Aynı istek iki kez gelirse fırça bir kez düşer.
+- Her istekte `requestId` olur. Aynı istek iki kez gelirse fırça bir kez düşer. Cevap kaybolduysa aynı istek bir kez daha ücretsiz çizilir, üçüncüsü `409`.
 
 **Gemini hatası**
-- Fırça iade edilir, telafi olarak 1 fırça hediye edilir.
+- Fırça iade edilir, telafi olarak 1 fırça hediye edilir. Telafi günde en fazla bir kez (aynı hatalı fotoğrafla fırça toplanamasın).
 
 **Karakter tutarlılığı**
-- Referans görseller (karakter kartları) telefonda tutulur, her `/ciz` isteğine sessizce eklenir.
+- Referans görseller (karakter kartları) telefonda tutulur, her `/v1/draw` isteğine sessizce eklenir.
 - Sadece o defterin kartları gönderilir. Kart sayısı fotoğraf sayısıyla artmaz.
 - Defter başına en fazla 4 kart. Worker da 4'ten fazla kartı reddeder, böylece girdi maliyeti çizim başı ~$0,007'yi geçmez.
 
@@ -50,68 +50,34 @@ Eski ortak defterli, uçtan uca şifreli tasarım: `MIMARI-v2-ortak-defter.md` (
 - Hediye 3 fırça cihaz başına bir kez verilir: iOS'ta DeviceCheck, Android'de Play Integrity.
 
 ## D1
-```sql
-CREATE TABLE kullanici (
-  id TEXT PRIMARY KEY,                     -- ulid, iOS Keychain'de saklı
-  apple_sub TEXT UNIQUE,
-  google_sub TEXT UNIQUE,
-  abone_firca INTEGER NOT NULL DEFAULT 0,
-  paket_firca INTEGER NOT NULL DEFAULT 3,
-  abone_bitis INTEGER,
-  olusturma INTEGER NOT NULL
-);
-CREATE TABLE cizim (
-  id TEXT PRIMARY KEY,                     -- istek_id
-  kullanici_id TEXT NOT NULL REFERENCES kullanici(id),
-  ucretsiz_tekrar INTEGER NOT NULL DEFAULT 1,
-  olusturma INTEGER NOT NULL
-);
-CREATE TABLE firca_hareket (
-  id TEXT PRIMARY KEY,
-  kullanici_id TEXT NOT NULL REFERENCES kullanici(id),
-  kova TEXT NOT NULL,                      -- abone|paket
-  delta INTEGER NOT NULL,
-  neden TEXT NOT NULL,                     -- hediye|cizim|iade|telafi|paket|abonelik
-  ref TEXT,                                -- cizim id veya RevenueCat işlem id
-  zaman INTEGER NOT NULL
-);
-CREATE TABLE gemini_cagri (                -- her Gemini çağrısı, tekrar ve hata dahil
-  id TEXT PRIMARY KEY,
-  cizim_id TEXT NOT NULL REFERENCES cizim(id),
-  kullanici_id TEXT NOT NULL REFERENCES kullanici(id),
-  model TEXT NOT NULL,
-  girdi_token INTEGER NOT NULL,            -- usageMetadata.promptTokenCount
-  gorsel_token INTEGER NOT NULL,           -- candidatesTokensDetails, modality IMAGE
-  metin_token INTEGER NOT NULL,            -- kalan çıktı + thoughtsTokenCount
-  maliyet_mikro INTEGER NOT NULL,          -- USD × 1.000.000
-  sure_ms INTEGER NOT NULL,
-  basarili INTEGER NOT NULL,               -- 0: görsel gelmedi ama ücret yine yazılır
-  zaman INTEGER NOT NULL
-);
-CREATE INDEX gemini_cagri_zaman ON gemini_cagri(zaman);
-```
-Fırça düşme tek D1 `batch` içinde yapılır: önce `abone_firca > 0` koşuluyla düşülür, olmazsa `paket_firca > 0` koşuluyla, ardından `firca_hareket` satırı yazılır.
+Şema: `worker/migrations/0001_init.sql`. Tablolar: `users`, `draws`, `brush_moves`, `gemini_calls`.
+- `users.id` uygulamanın Ed25519 public key'i. Kayıt ya da token yok.
+- Fırça düşme koşullu `UPDATE` ile yapılır: önce `sub_brushes > 0` ve abonelik süresi dolmamışsa, olmazsa `pack_brushes > 0`. Ardından `brush_moves` satırı yazılır.
+- Hesap silinince `draws` ve `brush_moves` silinir, `gemini_calls` kullanıcısız kalır (maliyet istatistiği için).
 
 ## Maliyet takibi
-- Fiyatlar Worker ortam değişkeninde (USD / 1M token): `FIYAT_GIRDI=1.50`, `FIYAT_GORSEL=30.00`, `FIYAT_METIN=7.50`. Google fiyat değiştirirse sadece bunlar güncellenir. Tutar çağrı anındaki fiyatla yazılır, eski satırlar değişmez.
+- Fiyatlar Worker ortam değişkeninde (USD / 1M token): `PRICE_INPUT=1.50`, `PRICE_IMAGE=30.00`, `PRICE_TEXT=7.50`. Google fiyat değiştirirse sadece bunlar güncellenir. Tutar çağrı anındaki fiyatla yazılır, eski satırlar değişmez.
 - Günlük toplam:
 ```sql
-SELECT date(zaman/1000,'unixepoch') gun, count(*) cagri,
-       round(sum(maliyet_mikro)/1e6, 2) usd,
-       round(avg(maliyet_mikro)/1e6, 4) ortalama
-FROM gemini_cagri GROUP BY gun ORDER BY gun DESC;
+SELECT date(created_at/1000,'unixepoch') gun, count(*) cagri,
+       round(sum(cost_micros)/1e6, 2) usd,
+       round(avg(cost_micros)/1e6, 4) ortalama
+FROM gemini_calls GROUP BY gun ORDER BY gun DESC;
 ```
 - Çalıştırma: `wrangler d1 execute doodlog --remote --command "..."`.
 
 ## API
+Her `/v1` isteği imzalı: `Authorization: Doodlog key=<public key>, ts=<unix sn>, sig=<imza>`. İmzalanan metin `doodlog-v1\n<METHOD>\n<path>\n<ts>\n<body sha256 hex>`. Ayrıntı: `worker/src/auth.ts`.
+
 | Uç | İş |
 |---|---|
-| `POST /auth/anon` | kullanıcı + JWT (HS256, 30 gün), cihaz kontrolüyle 3 hediye fırça |
-| `POST /auth/apple` · `/auth/google` | hesap bağla, fırça ve abonelik yeni cihaza taşınır |
-| `GET /firca` | iki bakiye + yenilenme tarihi |
-| `POST /ciz` | fırça düş, Gemini, PNG dön |
-| `DELETE /hesap` | kullanıcıyı ve fırça geçmişini sil |
-| `POST /webhook/revenuecat` | abonelik ve paket → `firca_hareket` |
+| `GET /v1/brushes` | iki bakiye + yenilenme tarihi. İlk istekte kullanıcı açılır, 3 hediye fırça |
+| `POST /v1/draw` | `{ requestId, photo, cards }` → fırça düş, Gemini, `{ image, brushes }` dön |
+| `DELETE /v1/account` | kullanıcıyı ve fırça geçmişini sil |
+| `POST /v1/auth/apple` · `/v1/auth/google` | (sonra) hesap bağla, fırça ve abonelik yeni cihaza taşınır |
+| `POST /v1/webhooks/revenuecat` | (sonra) abonelik ve paket → `brush_moves` |
+
+Hediye şimdilik anahtar başına veriliyor. Yayından önce DeviceCheck / Play Integrity ile cihaz başına bir kez yapılmalı.
 
 ## Telefonda (Evolu)
 - `defter`: `tur`, `ad`, `kapakAniId`
@@ -119,7 +85,7 @@ FROM gemini_cagri GROUP BY gun ORDER BY gun DESC;
 - Evolu owner anahtarı kullanıcıya gösterilmez. iOS'ta iCloud Keychain'e, Android'de Block Store'a sessizce yazılır.
 - Evolu sürümü sabitlenir. Veriye tek katmandan erişilir (`depo.ts`).
 - Widget, paylaşım kartı, yıl sonu görseli ve fırça bitti kolajı telefonda üretilir. Widget çizimleri App Group'tan okur.
-- **Verilerimi sil:** Evolu verisi sıfırlanır, çizim dosyaları silinir, `DELETE /hesap` çağrılır.
+- **Verilerimi sil:** Evolu verisi sıfırlanır, çizim dosyaları silinir, `DELETE /v1/account` çağrılır.
 
 ## Yedek
 - iOS: uygulama verisi iCloud cihaz yedeğine kendiliğinden girer.
