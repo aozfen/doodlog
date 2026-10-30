@@ -12,7 +12,7 @@ export const NotebookKind = Evolu.union('partner', 'child', 'family', 'friends',
 export const Goal = Evolu.union('weekly1', 'weekly3', 'daily');
 export const JobStatus = Evolu.union('drawing', 'done', 'failed');
 
-/** A picture saved as text: "drawing:<key>" / "photo:<key>" for bundled mock images, else a file URI. */
+/** A picture saved as text: "drawing:<key>" / "photo:<key>" for bundled sample images, else a file URI. */
 export const PictureRef = Evolu.NonEmptyTrimmedString1000;
 
 export const Schema = {
@@ -32,15 +32,16 @@ export const Schema = {
     drawing: PictureRef,
     photo: Evolu.nullOr(PictureRef),
   },
-  /** One row per device (see profileId): settings and onboarding state. */
+  /** One row per device (see profileId): settings, offer and the first drawing job. */
   profile: {
     id: ProfileId,
     name: Evolu.nullOr(Evolu.NonEmptyTrimmedString100),
     goal: Goal,
     reminderAt: Evolu.nullOr(Evolu.NonEmptyTrimmedString100),
-    onboarded: Evolu.SqliteBoolean,
-    /** 1 when the account is the developer mock account (seedUser), 0 for a real new user. */
-    demo: Evolu.SqliteBoolean,
+    /** Old home of the onboarding flag, read once to fill store/onboarding.ts. Not written anymore. */
+    onboarded: Evolu.nullOr(Evolu.SqliteBoolean),
+    /** Old developer mock account flag. Not used anymore. */
+    demo: Evolu.nullOr(Evolu.SqliteBoolean),
     brushPack: Evolu.NonNegativeInt,
     brushSubscription: Evolu.NonNegativeInt,
     offerEndsAt: Evolu.nullOr(Evolu.NonNegativeInt),

@@ -1,4 +1,4 @@
-// App repository (Evolu backed, see store.ts). Screens read data only through these helpers.
+// App data (Evolu backed, see store.ts). Screens read data only through these helpers.
 // In render, read through the hooks in hooks/use-store.ts or the pure `...In` selectors below.
 // The React Compiler caches a call with no reactive input, so `getTodayMemory()` in render
 // keeps its first answer. The `get...` getters are for event handlers and the store.
@@ -7,11 +7,8 @@ import { notebookStats } from '@/lib/notebook-stats';
 
 import type { Memory, Notebook } from '@/types';
 
-import type { DrawingKey } from './images';
-import { NOTEBOOK_OF } from './notebooks';
 import { getMemories, getNotebooks } from './store';
 
-export { drawings, photos, type DrawingKey } from './images';
 export {
   addMemory,
   applyBalance,
@@ -26,17 +23,13 @@ export {
   getMemories,
   getJob,
   getNotebooks,
-  getScenario,
   getOfferEndsAt,
   getUser,
-  isOnboarded,
   isPaywallDue,
   loadStore,
   restartOnboarding,
   restoreDeletedDrawings,
-  restoreMockData,
   setPaywallDue,
-  setScenario,
   hasBrush,
   refreshBrushes,
   startFirstDrawing,
@@ -44,7 +37,7 @@ export {
   startOffer,
   subscribe,
 } from './store';
-export { brushMoves, totalBrushes } from './user';
+export { totalBrushes } from './user';
 
 // Pure selectors over lists from the hooks.
 export const notebookIn = (notebooks: Notebook[], id: string | undefined) =>
@@ -70,6 +63,3 @@ export const getMemory = (id: string) => memoryIn(getMemories(), id);
 export const memoriesOf = (notebookId: string) => getMemories().filter((m) => m.notebookId === notebookId);
 export const statsOf = (notebookId: string) => statsIn(getMemories(), notebookId);
 export const getTodayMemory = () => todayIn(getMemories());
-
-export const isDrawingKey = (key: string): key is DrawingKey => key in NOTEBOOK_OF;
-export const guessNotebook = (key: DrawingKey) => NOTEBOOK_OF[key];

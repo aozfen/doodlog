@@ -14,7 +14,6 @@ import {
   ListItem,
   Raised,
   Section,
-  Segmented,
   Sheet,
   Text,
   TextButton,
@@ -22,26 +21,22 @@ import {
 import { APP_NAME, DEFAULT_REMINDER, GOAL_ORDER, GOALS, REMINDER_TIMES, routes } from '@/constants';
 import { useSheet } from '@/hooks/use-sheet';
 import { comingSoon } from '@/lib/alerts';
-import { cancelReminders, ensureNotificationPermission, scheduleReminders, showNotificationsOff } from '@/lib/notifications';
-import { useScenario, useUser } from '@/hooks/use-store';
+import {
+  cancelReminders,
+  ensureNotificationPermission,
+  scheduleReminders,
+  showNotificationsOff,
+} from '@/lib/notifications';
+import { useUser } from '@/hooks/use-store';
 import {
   eraseEverything,
   restartOnboarding,
   restoreDeletedDrawings,
-  restoreMockData,
   setGoal,
   setReminderAt,
-  setScenario,
   totalBrushes,
-} from '@/mock';
+} from '@/store';
 import { colors, fonts, space } from '@/theme';
-import type { DrawScenario } from '@/types';
-
-const SCENARIOS: { value: DrawScenario; label: string }[] = [
-  { value: 'normal', label: 'Normal' },
-  { value: 'slow', label: 'Yavaş' },
-  { value: 'fail', label: 'Hata' },
-];
 
 const version = Constants.expoConfig?.version ?? '1.0.0';
 
@@ -49,7 +44,6 @@ const version = Constants.expoConfig?.version ?? '1.0.0';
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const user = useUser();
-  const scenario = useScenario();
   const reminder = user.reminderAt !== null;
   const toggleReminder = async (on: boolean) => {
     if (!on) {
@@ -152,13 +146,7 @@ export default function SettingsScreen() {
                   chevron
                   onPress={pickTime}
                 />,
-                <ListItem
-                  key="hedef"
-                  label="Hedef"
-                  value={GOALS[user.goal].label}
-                  chevron
-                  onPress={pickGoal}
-                />,
+                <ListItem key="hedef" label="Hedef" value={GOALS[user.goal].label} chevron onPress={pickGoal} />,
               ]
             : null}
         </Section>
@@ -196,11 +184,6 @@ export default function SettingsScreen() {
         {__DEV__ ? (
           <Section title="Geliştirici">
             <ListItem
-              label="Onboarding çizimi"
-              detail="Yavaş: 30 sn sonra uyarı · Hata: bir kez olmaz"
-              right={<Segmented options={SCENARIOS} value={scenario} onChange={setScenario} width={190} />}
-            />
-            <ListItem
               icon="redo"
               label="Onboarding'i baştan başlat"
               detail="İlk çizim mevcut verinin yerine geçer"
@@ -218,16 +201,6 @@ export default function SettingsScreen() {
               onPress={async () => {
                 const count = await restoreDeletedDrawings();
                 Alert.alert(count ? `${count} anı geri geldi` : 'Geri getirilecek çizim yok');
-              }}
-            />
-            <ListItem
-              icon="book"
-              label="Mock veriyi geri yükle"
-              detail="4 defter, dolu takvim, abone hesap"
-              chevron
-              onPress={() => {
-                restoreMockData();
-                router.replace(routes.home);
               }}
             />
           </Section>
@@ -264,7 +237,7 @@ export default function SettingsScreen() {
           variant="danger"
           label="Her şeyi sil"
           style={{ marginTop: 14 }}
-          // Mock: the store is emptied and the app starts over at onboarding.
+          // Everything on the phone goes and the app starts over at onboarding.
           onPress={() =>
             sheet.then(() => {
               eraseEverything();

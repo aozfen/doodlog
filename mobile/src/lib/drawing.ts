@@ -60,7 +60,7 @@ async function preparePhoto(photo: Picture) {
 
 /**
  * Keeps a copy of the original photo with the memory, so it stays when the user deletes
- * it from the gallery. Bundled mock photos and photos already in documents stay as they are.
+ * it from the gallery. Bundled sample photos and photos already in documents stay as they are.
  */
 async function keepPhoto(photo: Picture, requestId: string): Promise<Picture> {
   if (typeof photo === 'number') return photo;

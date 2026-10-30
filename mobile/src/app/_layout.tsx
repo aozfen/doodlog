@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { ToastProvider } from '@/components/ui';
-import { loadStore } from '@/mock';
+import { loadStore } from '@/store';
 import { colors } from '@/theme';
 
 SplashScreen.preventAutoHideAsync();

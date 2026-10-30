@@ -5,7 +5,7 @@ import { KindOption } from '@/components/notebook/kind-option';
 import { Button, Field, Sheet, Text } from '@/components/ui';
 import { EVENTS, INVITE_SOURCES, NEW_NOTEBOOK_KINDS, NOTEBOOK_KINDS } from '@/constants';
 import { track } from '@/lib/analytics';
-import { createNotebook } from '@/mock';
+import { createNotebook } from '@/store';
 import { colors, fonts, radius, space } from '@/theme';
 import type { Notebook, NotebookKind } from '@/types';
 

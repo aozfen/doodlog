@@ -28,7 +28,7 @@ import {
 } from '@/hooks/use-store';
 import { getToday, longDay } from '@/lib/date';
 import { notebookStatus } from '@/lib/notebook-stats';
-import { setPaywallDue, statsIn, totalBrushes } from '@/mock';
+import { setPaywallDue, statsIn, totalBrushes } from '@/store';
 import { space } from '@/theme';
 
 // Home. No info or notice cards here: only today, "1 yıl önce" and notebooks.
@@ -52,10 +52,7 @@ export default function HomeScreen() {
     return () => clearTimeout(id);
   }, [paywallDue, drawn]);
   const [creating, setCreating] = useState(false);
-  // Mock only: long-press the date to switch between filled and empty today.
-  const [showToday, setShowToday] = useState(true);
-  const todayMemory = useTodayMemory();
-  const today = showToday ? todayMemory : undefined;
+  const today = useTodayMemory();
   const todayNotebook = useNotebook(today?.notebookId);
   const onThisDay = useOnThisDayMemory();
 
@@ -73,7 +70,7 @@ export default function HomeScreen() {
           <Avatar name={user.name} size={32} label="Ayarlar" onPress={() => router.push(routes.settings)} />
         </View>
       </View>
-      <Text variant="sub" style={{ marginTop: 4 }} onLongPress={() => setShowToday((v) => !v)}>
+      <Text variant="sub" style={{ marginTop: 4 }}>
         {longDay(getToday())}
       </Text>
 

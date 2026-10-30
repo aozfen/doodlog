@@ -11,6 +11,7 @@
     "@expo/ui": "~58.0.25",
     "@noble/ed25519": "^3.2.0",
     "@noble/hashes": "^2.4.0",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-masked-view/masked-view": "0.3.2",
     "expo": "~58.0.21",
     "expo-asset": "~58.0.19",
@@ -44,7 +45,8 @@
     "react-native-screens": "~4.30.0",
     "react-native-svg": "15.16.0",
     "react-native-web": "~0.21.4",
-    "react-native-worklets": "0.13.0"
+    "react-native-worklets": "0.13.0",
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@babel/plugin-transform-explicit-resource-management": "^7.29.7",

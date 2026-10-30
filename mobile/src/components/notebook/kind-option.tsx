@@ -1,13 +1,13 @@
 import { StyleSheet } from 'react-native';
 
 import { Icon, Raised, Sticker, Text } from '@/components/ui';
-import { drawings, type DrawingKey } from '@/mock';
+import { SAMPLE_DRAWINGS, type SampleKey } from '@/constants';
 import { colors, fonts, radius } from '@/theme';
 
 type Props = {
   label: string;
   /** Sample drawing. Without it the option is a dashed "+" ("Başka"). */
-  art?: DrawingKey;
+  art?: SampleKey;
   selected: boolean;
   width: number;
   height?: number;
@@ -41,7 +41,7 @@ export function KindOption({ label, art, selected, width, height = 112, onPress 
 
   return (
     <Raised onPress={onPress} accessibilityLabel={label} radius={radius.option} containerStyle={box} style={face}>
-      <Sticker source={drawings[art]} style={[styles.art, { height: height * 0.6 }]} />
+      <Sticker source={SAMPLE_DRAWINGS[art]} style={[styles.art, { height: height * 0.6 }]} />
       <Text style={styles.label}>{label}</Text>
     </Raised>
   );

@@ -8,7 +8,7 @@ import { SHEET_PHOTOS, SHEET_SWAP_MS, routes } from '@/constants';
 import { noBrushes } from '@/lib/alerts';
 import { galleryAccess, openPhotoSettings, recentPhotos, type GalleryAccess } from '@/lib/gallery';
 import { photoParam, pickPhoto } from '@/lib/photos';
-import { hasBrush } from '@/mock';
+import { hasBrush } from '@/store';
 import { colors, fonts, radius } from '@/theme';
 
 const Ctx = createContext<{ open: (notebookId?: string) => void }>({ open: () => {} });

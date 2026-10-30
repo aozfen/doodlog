@@ -9,7 +9,7 @@ import { formatClock, useCountdown } from '@/hooks/use-countdown';
 import { useOfferEndsAt } from '@/hooks/use-store';
 import { comingSoon } from '@/lib/alerts';
 import { useFloat, usePopIn } from '@/lib/animations';
-import { startOffer } from '@/mock';
+import { startOffer } from '@/store';
 import { colors, fonts } from '@/theme';
 
 import { LegalLinks } from './legal-links';

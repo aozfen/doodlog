@@ -1,14 +1,11 @@
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton, Flat, ListGroup, ProgressBar, Raised, Text } from '@/components/ui';
+import { BackButton, Flat, ProgressBar, Raised, Text } from '@/components/ui';
 import { BRUSH_PACKS } from '@/constants';
 import { comingSoon } from '@/lib/alerts';
 import { useUser } from '@/hooks/use-store';
-import { brushMoves } from '@/mock';
 import { colors, fonts, space } from '@/theme';
-
-const formatDelta = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '0');
 
 // Brushes. Opens from the brush chip and from settings. Design: design/a-ayarlar.html (3).
 export default function BrushesScreen() {
@@ -69,23 +66,6 @@ export default function BrushesScreen() {
           </Raised>
         ))}
       </View>
-
-      <Text variant="label" style={styles.section}>
-        Son hareketler
-      </Text>
-      <ListGroup>
-        {brushMoves.map((m, i) => (
-          <View key={i} style={styles.move}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.strong}>{m.title}</Text>
-              <Text variant="sub" style={{ fontSize: 12, lineHeight: 16 }}>
-                {m.when}
-              </Text>
-            </View>
-            <Text style={[styles.delta, m.delta > 0 && { color: colors.ok }]}>{formatDelta(m.delta)}</Text>
-          </View>
-        ))}
-      </ListGroup>
     </ScrollView>
   );
 }
@@ -99,7 +79,4 @@ const styles = StyleSheet.create({
   divider: { height: 1.5, backgroundColor: colors.line, marginVertical: 14 },
   packs: { flexDirection: 'row', gap: 12, marginTop: 16 },
   pack: { paddingVertical: 12, paddingHorizontal: 16, gap: 2 },
-  section: { marginTop: 22, marginHorizontal: 4, marginBottom: 8 },
-  move: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 12, paddingHorizontal: 16 },
-  delta: { fontFamily: fonts.heavy, fontSize: 15, color: colors.ink },
 });

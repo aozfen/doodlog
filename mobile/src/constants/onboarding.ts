@@ -1,6 +1,6 @@
 // Onboarding content. The first notebook kind personalizes every later step.
 // Design: design/a-onboarding.html.
-import type { DrawingKey } from '@/mock/images';
+import type { SampleKey } from './samples';
 import type { Goal, NotebookKind } from '@/types';
 
 export type OnboardingKind = Extract<NotebookKind, 'partner' | 'pet' | 'self' | 'friends'>;
@@ -8,8 +8,8 @@ export type OnboardingKind = Extract<NotebookKind, 'partner' | 'pet' | 'self' | 
 export type OnboardingCopy = {
   /** Option label: "İlk defterin kimin için?" */
   label: string;
-  /** Sample before/after on the photo step. The mock "Gemini" also returns it. */
-  sample: DrawingKey;
+  /** Sample before/after on the photo step. */
+  sample: SampleKey;
   /** Photo step: what kind of photo to pick. */
   ask: string;
   /** Photo step: reassures that any photo works (never asks for faces), then a light quality hint. */

@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { CheckDot, Icon, ListGroup, ListItem, Sheet, Text } from '@/components/ui';
 import { useMemories, useNotebooks } from '@/hooks/use-store';
 import { notebookStatus } from '@/lib/notebook-stats';
-import { statsIn } from '@/mock';
+import { statsIn } from '@/store';
 
 import { NotebookCover } from './notebook-cover';
 import { colors } from '@/theme';

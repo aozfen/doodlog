@@ -1,9 +1,9 @@
-// Pictures are saved as text. Bundled mock images become "drawing:<key>" / "photo:<key>".
+// Pictures are saved as text. Bundled sample images become "drawing:<key>" / "photo:<key>".
 // Files in the app's documents become "doc:<relative path>": iOS moves the documents folder
 // on updates, so the full URI would break. Other pictures keep their URI.
 import { File, Paths } from 'expo-file-system';
 
-import { drawings, photos } from '@/mock/images';
+import { SAMPLE_DRAWINGS, SAMPLE_PHOTOS } from '@/constants/samples';
 import type { Picture } from '@/types';
 
 const refOfAsset = new Map<number, string>();
@@ -16,8 +16,8 @@ const register = (prefix: string, images: Partial<Record<string, number>>) => {
     assetOfRef.set(`${prefix}:${key}`, asset);
   }
 };
-register('drawing', drawings);
-register('photo', photos);
+register('drawing', SAMPLE_DRAWINGS);
+register('photo', SAMPLE_PHOTOS);
 
 export function toPictureRef(picture: Picture): string {
   if (typeof picture === 'number') {
@@ -34,7 +34,7 @@ export function toPictureRef(picture: Picture): string {
 
 const DOC_PREFIX = 'doc:';
 
-/** The picture is a file the app saved (a real drawing or photo), not a bundled mock image. */
+/** The picture is a file the app saved (a real drawing or photo), not a bundled sample image. */
 export const isDocRef = (ref: string) => ref.startsWith(DOC_PREFIX);
 
 export function fromPictureRef(ref: string): Picture {

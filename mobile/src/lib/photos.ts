@@ -12,6 +12,6 @@ export async function pickPhoto(): Promise<Picture | null> {
   return asset ? { uri: asset.uri } : null;
 }
 
-/** Route param for a photo: a bundled mock key, or a picked file URI. */
+/** Route param for a picked photo: its file URI. */
 export const photoParam = (photo: Picture) =>
   typeof photo === 'object' && photo && 'uri' in photo && photo.uri ? photo.uri : null;

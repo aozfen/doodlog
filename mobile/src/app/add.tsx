@@ -26,17 +26,7 @@ import { comingSoon, drawFailed, noBrushes } from '@/lib/alerts';
 import { drawingPop } from '@/lib/animations';
 import { dayMonth, getToday, toIsoDay } from '@/lib/date';
 import { DrawError, drawPhoto, newRequestId } from '@/lib/drawing';
-import {
-  addMemory,
-  applyBalance,
-  getNotebook,
-  getNotebooks,
-  guessNotebook,
-  hasBrush,
-  isDrawingKey,
-  photos,
-  totalBrushes,
-} from '@/mock';
+import { addMemory, applyBalance, getNotebook, getNotebooks, hasBrush, totalBrushes } from '@/store';
 import { colors, space } from '@/theme';
 import type { Picture } from '@/types';
 
@@ -51,16 +41,12 @@ const EXPECTED_PROGRESS = 0.75;
 const LATE_PROGRESS = 0.95;
 const LATE_MS = 45_000;
 
-/** The photo to draw: a bundled mock photo key, or a picked file URI. */
+/** The photo to draw (a gallery id or a picked file URI) and its notebook. */
 function usePhotoParam() {
   const params = useLocalSearchParams<{ photo?: string; notebook?: string }>();
-  const key = params.photo && isDrawingKey(params.photo) ? params.photo : undefined;
-  const photo: Picture | undefined = key ? photos[key] : params.photo ? { uri: params.photo } : undefined;
-  // The mock guess points at the mock notebooks, which a real account does not have.
+  const photo: Picture | undefined = params.photo ? { uri: params.photo } : undefined;
   // A notebook that does not exist would hide the memory, so the first one is the fallback.
-  const notebookId = [params.notebook, key && guessNotebook(key), getNotebooks()[0]?.id].find(
-    (id): id is string => !!id && getNotebook(id) !== undefined,
-  );
+  const notebookId = params.notebook && getNotebook(params.notebook) ? params.notebook : getNotebooks()[0]?.id;
   return { photo, notebookId };
 }
 

@@ -22,7 +22,7 @@ import { dayMonth, daysInMonth, getToday, isSameDay, parseIsoDay, recentMonths }
 import { countDays, groupByDay } from '@/lib/days';
 import { notebookStats } from '@/lib/notebook-stats';
 import { withDative } from '@/lib/text';
-import { deleteNotebook, notebookIn } from '@/mock';
+import { deleteNotebook, notebookIn } from '@/store';
 import { colors, space } from '@/theme';
 import type { Memory, Picture } from '@/types';
 

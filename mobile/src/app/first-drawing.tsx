@@ -4,9 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { PaywallStep, ReadyStep } from '@/components/onboarding/finish-steps';
-import { ONBOARDING_COPY, isOnboardingKind, routes } from '@/constants';
+import { ONBOARDING_COPY, SAMPLE_DRAWINGS, isOnboardingKind, routes } from '@/constants';
 import { useDrawJob, useNotebooks, useTodayMemory } from '@/hooks/use-store';
-import { drawings } from '@/mock';
 import { colors } from '@/theme';
 
 // The end of onboarding for those who went home before the first drawing landed.
@@ -17,7 +16,7 @@ export default function FirstDrawingScreen() {
   const job = useDrawJob();
   const notebook = useNotebooks().find((n) => n.id === job?.notebookId);
   const copy = ONBOARDING_COPY[notebook && isOnboardingKind(notebook.kind) ? notebook.kind : 'partner'];
-  const drawing = job?.drawing ?? drawings[copy.sample];
+  const drawing = job?.drawing ?? SAMPLE_DRAWINGS[copy.sample];
   const memory = useTodayMemory();
 
   return (

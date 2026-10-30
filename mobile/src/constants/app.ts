@@ -58,16 +58,10 @@ export const PLANS: Record<PlanId, PlanInfo> = {
 export const PLAN_ORDER: PlanId[] = ['yearly', 'monthly'];
 
 /**
- * Mock drawing time in onboarding. Close to the real 10-20 s, so the questions
- * asked while it draws (name, goal, reminder) are seen.
+ * Expected drawing time in onboarding: paces its progress bar. Close to the real 10-20 s,
+ * so the questions asked while it draws (name, goal, reminder) are seen.
  */
 export const ONBOARDING_DRAW_MS = 14000;
-
-/** Mock "slow" scenario: longer than LONG_WAIT_MS, so "Biraz uzun sürüyor" shows. */
-export const SLOW_DRAW_MS = 50000;
-
-/** Mock "fail" scenario: the drawing fails after this long. */
-export const FAIL_DRAW_MS = 8000;
 
 /** Home waits this long after the background drawing lands before opening it. */
 export const PAYWALL_DELAY_MS = 1200;
@@ -92,6 +86,11 @@ export const EXIT_OFFER = {
   saving: 'Yılda $45,89 cebinde kalır',
   badge: '%48 indirim',
   hours: 24,
+} as const;
+
+/** AsyncStorage keys. */
+export const STORAGE_KEYS = {
+  onboarding: 'doodlog.onboarding',
 } as const;
 
 /** Doodlog Worker (worker/). Override with EXPO_PUBLIC_API_URL, e.g. a local `wrangler dev`. */

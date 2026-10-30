@@ -23,6 +23,8 @@ import {
   LONG_WAIT_MS,
   NOTEBOOK_KINDS,
   ONBOARDING_COPY,
+  SAMPLE_DRAWINGS,
+  SAMPLE_PHOTOS,
   routes,
   type OnboardingKind,
 } from '@/constants';
@@ -30,14 +32,7 @@ import { track } from '@/lib/analytics';
 import { pickPhoto as pickFromGallery } from '@/lib/photos';
 import { ensureNotificationPermission, scheduleReminders } from '@/lib/notifications';
 import { useDrawJob, useTodayMemory } from '@/hooks/use-store';
-import {
-  drawings,
-  finishOnboarding,
-  setPaywallDue,
-  photos,
-  startFirstDrawing,
-  startJournal,
-} from '@/mock';
+import { finishOnboarding, setPaywallDue, startFirstDrawing, startJournal } from '@/store';
 import { colors } from '@/theme';
 import type { Goal } from '@/types';
 
@@ -121,16 +116,14 @@ export default function OnboardingScreen() {
 
   // The picked photo is drawn in the background while the questions are asked.
   // A retry (after a failure) keeps the notebook and skips the questions already answered.
-  // Developer only: `skip` uses the sample photo and drawing, without the gallery or the server.
-  const pickPhoto = async (skip = false) => {
+  const pickPhoto = async () => {
     if (!kind) return;
-    const sample = ONBOARDING_COPY[kind].sample;
-    const photo = skip ? (photos[sample] ?? drawings[sample]) : await pickFromGallery();
+    const photo = await pickFromGallery();
     if (!photo) return;
     const retry = notebookId !== null;
     const id = notebookId ?? startJournal(notebookName.trim(), kind).id;
     setNotebookId(id);
-    const started = startFirstDrawing(id, photo, skip ? drawings[sample] : undefined);
+    const started = startFirstDrawing(id, photo);
     progress.set(0);
     progress.set(withTiming(1, { duration: started.endsAt - started.startedAt, easing: Easing.inOut(Easing.quad) }));
     setStayed(false);
@@ -172,13 +165,13 @@ export default function OnboardingScreen() {
   const todayMemory = useTodayMemory();
   const memory = drawn ? todayMemory : undefined;
   // The paywall shows the user's own drawing; the sample stands in only if there is none.
-  const paywallDrawing = memory?.drawing ?? job?.drawing ?? (copy ? drawings[copy.sample] : undefined);
+  const paywallDrawing = memory?.drawing ?? job?.drawing ?? (copy ? SAMPLE_DRAWINGS[copy.sample] : undefined);
 
   const status =
     copy && !paywallSeen ? (
       <DrawingStatus
-        photo={photos[copy.sample]}
-        drawing={drawings[copy.sample]}
+        photo={SAMPLE_PHOTOS[copy.sample]}
+        drawing={SAMPLE_DRAWINGS[copy.sample]}
         progress={progress}
         label={STATUS_LABEL[step] ?? 'Çiziliyor…'}
         done={drawn}
@@ -204,12 +197,7 @@ export default function OnboardingScreen() {
       case 'photo':
         return (
           kind && (
-            <PhotoStep
-              kind={kind}
-              onBack={notebookId ? undefined : () => setStep('kind')}
-              onPick={() => pickPhoto()}
-              onDevSkip={__DEV__ ? () => pickPhoto(true) : undefined}
-            />
+            <PhotoStep kind={kind} onBack={notebookId ? undefined : () => setStep('kind')} onPick={() => pickPhoto()} />
           )
         );
       case 'name':
@@ -254,8 +242,8 @@ export default function OnboardingScreen() {
         return (
           copy && (
             <FailedStep
-              photo={photos[copy.sample]}
-              drawing={drawings[copy.sample]}
+              photo={SAMPLE_PHOTOS[copy.sample]}
+              drawing={SAMPLE_DRAWINGS[copy.sample]}
               onRetry={pickPhoto}
               onOtherPhoto={() => setStep('photo')}
             />

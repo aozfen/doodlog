@@ -1,4 +1,4 @@
-// Domain types shared by screens, components and mock data.
+// Domain types shared by screens, components and the store.
 import type { ImageSource } from 'expo-image';
 
 /** Local image: a `require()` result or a file URI. */
@@ -66,8 +66,6 @@ export type User = {
 /** Brush balance as the Worker returns it (GET /v1/brushes). */
 export type ServerBalance = { subscription: number; pack: number; total: number; renewsAt: number | null };
 
-export type BrushMove = { title: string; when: string; delta: number };
-
 /** A drawing being made by the backend. Lives outside screens, so leaving one keeps it going. */
 export type DrawJob = {
   notebookId: string;
@@ -81,6 +79,3 @@ export type DrawJob = {
   endsAt: number;
   status: 'drawing' | 'done' | 'failed';
 };
-
-/** Developer menu: how the mock first drawing behaves. */
-export type DrawScenario = 'normal' | 'slow' | 'fail';

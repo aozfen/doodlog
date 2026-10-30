@@ -12,10 +12,18 @@ import Animated, {
 
 import { KindOption } from '@/components/notebook/kind-option';
 import { Button, Field, Icon, IconButton, Sticker, Text, TextButton } from '@/components/ui';
-import { GIFT_BRUSHES, NOTEBOOK_KINDS, ONBOARDING_COPY, ONBOARDING_KINDS, type OnboardingKind } from '@/constants';
+import {
+  GIFT_BRUSHES,
+  NOTEBOOK_KINDS,
+  ONBOARDING_COPY,
+  ONBOARDING_KINDS,
+  SAMPLE_DRAWINGS,
+  SAMPLE_PHOTOS,
+  type OnboardingKind,
+  type SampleKey,
+} from '@/constants';
 import { comingSoon } from '@/lib/alerts';
 import { useFadeUp, useFloat } from '@/lib/animations';
-import { drawings, photos, type DrawingKey } from '@/mock';
 import { colors, fonts, space } from '@/theme';
 
 import { Reveal, StepLayout, StepTitle } from './step-layout';
@@ -24,7 +32,7 @@ const NAME_MAX = 30;
 
 // Loose sticker pile on the welcome step, one per kind of notebook.
 // Order is the entrance order: top left, top right, bottom left, bottom right.
-const PILE: { art: DrawingKey; style: ViewStyle; rotate: string }[] = [
+const PILE: { art: SampleKey; style: ViewStyle; rotate: string }[] = [
   { art: 'couple01', style: { width: 200, height: 200, left: 10, top: 10 }, rotate: '-6deg' },
   { art: 'dog01', style: { width: 130, height: 130, right: 24, top: 30 }, rotate: '8deg' },
   { art: 'self01', style: { width: 130, height: 130, left: 30, top: 210 }, rotate: '5deg' },
@@ -73,7 +81,7 @@ export function WelcomeStep({ onNext }: { onNext: () => void }) {
  * Driven by shared values, not an `entering` animation: the step itself fades in with
  * `entering`, and Reanimated skips nested entering animations, so all stickers popped at once.
  */
-type FloatingProps = { art: DrawingKey; index: number; style: ViewStyle; rotate: string };
+type FloatingProps = { art: SampleKey; index: number; style: ViewStyle; rotate: string };
 
 function FloatingSticker({ art, index, style, rotate }: FloatingProps) {
   const rise = useSharedValue(0);
@@ -98,7 +106,7 @@ function FloatingSticker({ art, index, style, rotate }: FloatingProps) {
     <Animated.View style={[styles.pileItem, style, riseStyle]}>
       <View style={[StyleSheet.absoluteFill, { transform: [{ rotate }] }]}>
         <Animated.View style={[StyleSheet.absoluteFill, floatStyle]}>
-          <Sticker source={drawings[art]} style={StyleSheet.absoluteFill} />
+          <Sticker source={SAMPLE_DRAWINGS[art]} style={StyleSheet.absoluteFill} />
         </Animated.View>
       </View>
     </Animated.View>
@@ -177,14 +185,12 @@ type PhotoProps = {
   /** Missing on a retry: the notebook already exists, so there is no way back. */
   onBack?: () => void;
   onPick: () => void;
-  /** Developer only: skips the gallery and the server with the sample drawing. */
-  onDevSkip?: () => void;
 };
 
-export function PhotoStep({ kind, onBack, onPick, onDevSkip }: PhotoProps) {
+export function PhotoStep({ kind, onBack, onPick }: PhotoProps) {
   const retry = !onBack;
   const copy = ONBOARDING_COPY[kind];
-  const photo = photos[copy.sample];
+  const photo = SAMPLE_PHOTOS[copy.sample];
 
   return (
     <StepLayout
@@ -194,7 +200,6 @@ export function PhotoStep({ kind, onBack, onPick, onDevSkip }: PhotoProps) {
           <Text variant="sub" style={{ textAlign: 'center', fontSize: 12 }}>
             Sadece seçtiğin fotoğrafı görürüz.
           </Text>
-          {onDevSkip ? <TextButton label="Geç (dev)" onPress={onDevSkip} /> : null}
         </>
       }
       footOrder={5}>
@@ -220,7 +225,7 @@ export function PhotoStep({ kind, onBack, onPick, onDevSkip }: PhotoProps) {
           </Reveal>
         ) : null}
         <Reveal order={3} style={[styles.sampleDrawing, !photo && styles.sampleAlone]}>
-          <Sticker source={drawings[copy.sample]} style={StyleSheet.absoluteFill} />
+          <Sticker source={SAMPLE_DRAWINGS[copy.sample]} style={StyleSheet.absoluteFill} />
         </Reveal>
       </View>
 

@@ -26,7 +26,7 @@ import { useSheet } from '@/hooks/use-sheet';
 import { useMemories, useNotebooks } from '@/hooks/use-store';
 import { comingSoon } from '@/lib/alerts';
 import { dayMonth, dayName, getToday, parseIsoDay } from '@/lib/date';
-import { deleteMemory, notebookIn, setMemoryNote } from '@/mock';
+import { deleteMemory, notebookIn, setMemoryNote } from '@/store';
 import { colors, space } from '@/theme';
 
 // Memory detail. Design: design/a-takvim.html (3) and design/a-ani-menu.html.

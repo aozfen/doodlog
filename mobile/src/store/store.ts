@@ -4,7 +4,7 @@
 // When sync lands, subscribe to the Evolu queries here so changes from other devices show up.
 import * as Evolu from '@evolu/common';
 
-import { FAIL_DRAW_MS, ONBOARDING_DRAW_MS, SLOW_DRAW_MS, UNDO_TOAST_MS } from '@/constants';
+import { ONBOARDING_DRAW_MS, UNDO_TOAST_MS } from '@/constants';
 import {
   deletedMemoriesQuery,
   deletedNotebooksQuery,
@@ -19,41 +19,19 @@ import { MemoryId, NotebookId, PictureRef, profileId } from '@/db/schema';
 import { fetchBrushes } from '@/lib/api';
 import { dayMonth, getToday, toIsoDay } from '@/lib/date';
 import { DrawError, drawPhoto, newRequestId } from '@/lib/drawing';
-import type {
-  DrawJob,
-  DrawScenario,
-  Goal,
-  Memory,
-  Notebook,
-  NotebookKind,
-  Picture,
-  ServerBalance,
-  User,
-} from '@/types';
+import { loadOnboarding, setOnboarded, useOnboardingStore } from './onboarding';
+import type { DrawJob, Goal, Memory, Notebook, NotebookKind, Picture, ServerBalance, User } from '@/types';
 
-import { seedMemories } from './memories';
-import { seedNotebooks } from './notebooks';
-import { newUser, seedUser } from './user';
-
-/**
- * Fresh install (empty database):
- * true: open onboarding. false: start on home with the full mock data.
- */
-const ONBOARDING_ON_LAUNCH = true;
+import { newUser } from './user';
 
 type State = {
   notebooks: Notebook[];
   memories: Memory[];
   user: User;
-  /** The account is the developer mock account (seedUser), not a real new user. */
-  demo: boolean;
-  onboarded: boolean;
   /** End of the one-time exit offer (ms), null until it is shown. */
   offerEndsAt: number | null;
   /** The first drawing while it is made, and after (done or failed). Not saved. */
   job: DrawJob | null;
-  /** Developer menu: how the next mock first drawing behaves. Not saved. */
-  scenario: DrawScenario;
   /** Left onboarding before the drawing: show the paywall on home once it lands. Not saved. */
   paywallDue: boolean;
 };
@@ -69,14 +47,10 @@ let state: State = hot.__doodlogStore?.state ?? {
   notebooks: [],
   memories: [],
   user: newUser(),
-  demo: false,
-  onboarded: false,
   offerEndsAt: null,
   job: null,
-  scenario: 'normal',
   paywallDue: false,
 };
-let jobTimer: ReturnType<typeof setTimeout> | undefined;
 let db: Db | undefined = hot.__doodlogStore?.db;
 
 const listeners = new Set<() => void>();
@@ -90,10 +64,7 @@ const setState = (next: State) => {
 const byDate = (a: Memory, b: Memory) => a.date.localeCompare(b.date);
 
 /** Fresh-start fields shared by onboarding restarts and "Verilerimi sil". */
-const resetJob = () => {
-  clearTimeout(jobTimer);
-  return { job: null, offerEndsAt: null, paywallDue: false };
-};
+const resetJob = () => ({ job: null, offerEndsAt: null, paywallDue: false });
 
 // --- Evolu writes ---------------------------------------------------------------
 
@@ -188,9 +159,9 @@ function deleteAllRows() {
   state.memories.forEach((m) => setMemoryDeleted(m.id, true));
 }
 
-/** Saves the user, onboarding, offer and drawing job fields of the current state. */
+/** Saves the user, offer and drawing job fields of the current state. Onboarding is in store/onboarding.ts. */
 function saveProfile() {
-  const { user, demo, onboarded, offerEndsAt, job } = state;
+  const { user, offerEndsAt, job } = state;
   getDb().upsert('profile', {
     jobNotebookId: job ? NotebookId.orThrow(job.notebookId) : null,
     jobRequestId: job ? text100(job.requestId) : null,
@@ -203,8 +174,6 @@ function saveProfile() {
     name: text100(user.name),
     goal: user.goal,
     reminderAt: user.reminderAt ? text100(user.reminderAt) : null,
-    onboarded: Evolu.booleanToSqliteBoolean(onboarded),
-    demo: Evolu.booleanToSqliteBoolean(demo),
     brushPack: count(user.brushes.pack),
     brushSubscription: count(user.brushes.subscription),
     offerEndsAt: offerEndsAt === null ? null : count(offerEndsAt),
@@ -269,19 +238,18 @@ export async function loadStore() {
     db.loadQuery(notebooksQuery),
     db.loadQuery(memoriesQuery),
     db.loadQuery(profileQuery),
+    loadOnboarding(),
   ]);
 
   const profile = profileRows[0];
-  if (!profile) {
-    if (!ONBOARDING_ON_LAUNCH) restoreMockData();
-    return;
-  }
+  // Installs from before store/onboarding.ts kept the flag in the Evolu profile: copy it once.
+  if (useOnboardingStore.getState().onboarded === null) setOnboarded(profile?.onboarded === Evolu.sqliteTrue);
+  if (!profile) return;
 
   const notebooks = notebookRows.flatMap(toNotebook);
   const memories = adoptOrphans(memoryRows.flatMap(toMemory), notebooks);
 
-  const demo = profile.demo === Evolu.sqliteTrue;
-  const base = demo ? seedUser : newUser();
+  const base = newUser();
   const user: User = {
     ...base,
     name: profile.name ?? '',
@@ -312,8 +280,6 @@ export async function loadStore() {
     notebooks,
     memories,
     user,
-    demo,
-    onboarded: profile.onboarded === Evolu.sqliteTrue,
     offerEndsAt: profile.offerEndsAt ?? null,
     job,
   });
@@ -352,10 +318,8 @@ export async function refreshBrushes() {
 export const getNotebooks = () => state.notebooks;
 export const getMemories = () => state.memories;
 export const getUser = () => state.user;
-export const isOnboarded = () => state.onboarded;
 export const getOfferEndsAt = () => state.offerEndsAt;
 export const getJob = () => state.job;
-export const getScenario = () => state.scenario;
 export const isPaywallDue = () => state.paywallDue;
 
 export const subscribe = (listener: () => void) => {
@@ -369,10 +333,6 @@ export const subscribe = (listener: () => void) => {
 
 export function setPaywallDue(paywallDue: boolean) {
   setState({ ...state, paywallDue });
-}
-
-export function setScenario(scenario: DrawScenario) {
-  setState({ ...state, scenario });
 }
 
 /** Starts the exit offer clock once. Showing the offer again never resets it. */
@@ -409,15 +369,10 @@ function finishDrawing(job: DrawJob, drawing: Picture, photo = job.photo) {
 }
 
 const BUSY_RETRY_MS = 15_000;
-/** Developer skip of the first drawing: long enough to see the questions flow. */
-const DEV_DRAW_MS = 3000;
 const BUSY_RETRIES = 8;
 
-/**
- * Draws the job's photo in the background, so the result lands even when no screen is open.
- * `minMs`: the result is held until this long after the start (developer "slow" scenario).
- */
-async function runJob(job: DrawJob, minMs = 0, retries = BUSY_RETRIES): Promise<void> {
+/** Draws the job's photo in the background, so the result lands even when no screen is open. */
+async function runJob(job: DrawJob, retries = BUSY_RETRIES): Promise<void> {
   const current = () => state.job?.requestId === job.requestId;
   const fail = () => {
     if (!current()) return;
@@ -427,8 +382,6 @@ async function runJob(job: DrawJob, minMs = 0, retries = BUSY_RETRIES): Promise<
   if (!job.photo) return fail();
   try {
     const { drawing, photo, brushes } = await drawPhoto(job.photo, job.requestId);
-    const wait = job.startedAt + minMs - Date.now();
-    if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
     applyBalance(brushes);
     if (current()) finishDrawing(job, drawing, photo);
   } catch (error) {
@@ -436,7 +389,7 @@ async function runJob(job: DrawJob, minMs = 0, retries = BUSY_RETRIES): Promise<
     // The server is still drawing this request (sent before a restart): ask again later.
     if (error instanceof DrawError && error.kind === 'busy' && retries > 0) {
       await new Promise((resolve) => setTimeout(resolve, BUSY_RETRY_MS));
-      if (current()) return runJob(job, minMs, retries - 1);
+      if (current()) return runJob(job, retries - 1);
       return;
     }
     console.warn('first_drawing_failed', error);
@@ -481,10 +434,9 @@ export function setMemoryNote(id: string, note: string) {
 
 /** Onboarding: a fresh account with the first, still empty notebook. */
 export function startJournal(name: string, kind: NotebookKind): Notebook {
-  clearTimeout(jobTimer);
   deleteAllRows();
   const notebook = insertNotebook(name, kind);
-  setState({ ...state, notebooks: [notebook], memories: [], user: newUser(), demo: false, job: null });
+  setState({ ...state, notebooks: [notebook], memories: [], user: newUser(), job: null });
   saveProfile();
   return notebook;
 }
@@ -492,40 +444,27 @@ export function startJournal(name: string, kind: NotebookKind): Notebook {
 /**
  * Draws the first memory in the background. The result lands in the store even when
  * no screen is open, and becomes the notebook cover.
- * Developer scenarios: "fail" fails once without calling the server, "slow" holds the result.
- * `devDrawing` (developer only): lands this drawing after a short wait, no server call, no brush.
  */
-export function startFirstDrawing(notebookId: string, photo: Picture, devDrawing?: Picture): DrawJob {
-  clearTimeout(jobTimer);
-  const { scenario } = state;
+export function startFirstDrawing(notebookId: string, photo: Picture): DrawJob {
   const startedAt = Date.now();
   const job: DrawJob = {
     notebookId,
     requestId: newRequestId(),
     photo,
     startedAt,
-    endsAt: startedAt + (scenario === 'slow' ? SLOW_DRAW_MS : ONBOARDING_DRAW_MS),
+    endsAt: startedAt + ONBOARDING_DRAW_MS,
     status: 'drawing',
   };
-  setState({ ...state, job, scenario: scenario === 'fail' ? 'normal' : scenario });
+  setState({ ...state, job });
   saveProfile();
-
-  if (devDrawing !== undefined) {
-    jobTimer = setTimeout(() => finishDrawing(job, devDrawing), DEV_DRAW_MS);
-  } else if (scenario === 'fail') {
-    jobTimer = setTimeout(() => {
-      setState({ ...state, job: { ...job, status: 'failed' } });
-      saveProfile();
-    }, FAIL_DRAW_MS);
-  } else {
-    void runJob(job, scenario === 'slow' ? SLOW_DRAW_MS : 0);
-  }
+  void runJob(job);
   return job;
 }
 
 export function finishOnboarding(profile: Pick<User, 'name' | 'goal' | 'reminderAt'>) {
-  setState({ ...state, user: { ...state.user, ...profile }, onboarded: true });
+  setState({ ...state, user: { ...state.user, ...profile } });
   saveProfile();
+  setOnboarded(true);
 }
 
 /** Reminder time ("21:00"), or null to turn reminders off. */
@@ -542,42 +481,14 @@ export function setGoal(goal: Goal) {
 
 /** Developer menu: show onboarding again. Its first drawing replaces the data. */
 export function restartOnboarding() {
-  setState({ ...state, ...resetJob(), onboarded: false });
+  setState({ ...state, ...resetJob() });
   saveProfile();
-}
-
-/** Developer menu: back to the full mock data, onboarding skipped. */
-export function restoreMockData() {
-  const evolu = getDb();
-  deleteAllRows();
-  for (const n of seedNotebooks) {
-    const id = NotebookId.orThrow(n.id);
-    evolu.upsert('notebook', {
-      id,
-      name: Evolu.NonEmptyTrimmedString100.orThrow(n.name),
-      kind: n.kind,
-      createdOn: day(n.createdAt),
-      cover: n.cover ? pictureRef(n.cover) : null,
-    });
-    // Stable seed ids: a restore after a delete brings the same row back.
-    evolu.update('notebook', { id, isDeleted: Evolu.sqliteFalse });
-  }
-  const memories = seedMemories.map(({ id: _seedId, ...m }) => insertMemory(m));
-  setState({
-    ...state,
-    ...resetJob(),
-    notebooks: seedNotebooks,
-    memories,
-    user: seedUser,
-    demo: true,
-    onboarded: true,
-  });
-  saveProfile();
+  setOnboarded(false);
 }
 
 /**
  * Developer menu: brings back soft-deleted memories drawn by the user (files in documents,
- * not bundled mock drawings) and their notebooks. Memories the user deleted lost their file
+ * not bundled sample drawings) and their notebooks. Memories the user deleted lost their file
  * and stay gone. Returns how many memories came back.
  */
 export async function restoreDeletedDrawings(): Promise<number> {
@@ -604,8 +515,9 @@ export async function restoreDeletedDrawings(): Promise<number> {
 /** "Verilerimi sil": everything goes, the app starts over at onboarding. */
 export function eraseEverything() {
   deleteAllRows();
-  setState({ ...state, ...resetJob(), notebooks: [], memories: [], user: newUser(), demo: false, onboarded: false });
+  setState({ ...state, ...resetJob(), notebooks: [], memories: [], user: newUser() });
   saveProfile();
+  setOnboarded(false);
 }
 
 /**

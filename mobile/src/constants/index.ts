@@ -4,3 +4,4 @@ export * from './app';
 export * from './notebook-kinds';
 export * from './routes';
 export * from './onboarding';
+export * from './samples';

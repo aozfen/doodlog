@@ -1,4 +1,4 @@
-import type { DrawingKey } from '@/mock/images';
+import type { SampleKey } from './samples';
 import type { NotebookKind } from '@/types';
 
 export type InviteCopy = {
@@ -17,7 +17,7 @@ export type KindInfo = {
   defaultName: string;
   namePlaceholder: string;
   /** Sample drawing on the kind option. undefined = dashed "+" option. */
-  art?: DrawingKey;
+  art?: SampleKey;
   /** Shared notebook fake door. null = no one to invite (a pet, yourself). */
   invite: InviteCopy | null;
 };
