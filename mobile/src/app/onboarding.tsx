@@ -29,12 +29,11 @@ import {
 import { track } from '@/lib/analytics';
 import { pickPhoto as pickFromGallery } from '@/lib/photos';
 import { ensureNotificationPermission, scheduleReminders } from '@/lib/notifications';
-import { useDrawJob } from '@/hooks/use-store';
+import { useDrawJob, useTodayMemory } from '@/hooks/use-store';
 import {
   drawings,
   finishOnboarding,
   setPaywallDue,
-  getTodayMemory,
   photos,
   startFirstDrawing,
   startJournal,
@@ -170,7 +169,8 @@ export default function OnboardingScreen() {
     else finish(reminderAt);
   };
 
-  const memory = drawn ? getTodayMemory() : undefined;
+  const todayMemory = useTodayMemory();
+  const memory = drawn ? todayMemory : undefined;
   // The paywall shows the user's own drawing; the sample stands in only if there is none.
   const paywallDrawing = memory?.drawing ?? job?.drawing ?? (copy ? drawings[copy.sample] : undefined);
 

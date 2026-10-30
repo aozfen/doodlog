@@ -16,10 +16,19 @@ import { NewNotebookSheet } from '@/components/notebook/new-notebook-sheet';
 import { OfferBadge } from '@/components/paywall/offer-badge';
 import { Avatar, Chip, Text } from '@/components/ui';
 import { PAYWALL_DELAY_MS, SHEET_SWAP_MS, routes } from '@/constants';
-import { useDrawJob, useMemories, useNotebooks, usePaywallDue, useUser } from '@/hooks/use-store';
+import {
+  useDrawJob,
+  useMemories,
+  useNotebook,
+  useNotebooks,
+  useOnThisDayMemory,
+  usePaywallDue,
+  useTodayMemory,
+  useUser,
+} from '@/hooks/use-store';
 import { getToday, longDay } from '@/lib/date';
 import { notebookStatus } from '@/lib/notebook-stats';
-import { getNotebook, getOnThisDayMemory, getTodayMemory, setPaywallDue, statsOf, totalBrushes } from '@/mock';
+import { setPaywallDue, statsIn, totalBrushes } from '@/mock';
 import { space } from '@/theme';
 
 // Home. No info or notice cards here: only today, "1 yıl önce" and notebooks.
@@ -45,9 +54,10 @@ export default function HomeScreen() {
   const [creating, setCreating] = useState(false);
   // Mock only: long-press the date to switch between filled and empty today.
   const [showToday, setShowToday] = useState(true);
-  const today = showToday ? getTodayMemory() : undefined;
-  const todayNotebook = today && getNotebook(today.notebookId);
-  const onThisDay = getOnThisDayMemory();
+  const todayMemory = useTodayMemory();
+  const today = showToday ? todayMemory : undefined;
+  const todayNotebook = useNotebook(today?.notebookId);
+  const onThisDay = useOnThisDayMemory();
 
   return (
     <ScrollView
@@ -95,7 +105,7 @@ export default function HomeScreen() {
           <NotebookCard
             key={n.id}
             notebook={n}
-            status={notebookStatus(statsOf(n.id))}
+            status={notebookStatus(statsIn(memories, n.id))}
             onPress={() => router.push(routes.notebook(n.id))}
           />
         ))}

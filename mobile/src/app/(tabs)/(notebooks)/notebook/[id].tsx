@@ -22,7 +22,7 @@ import { dayMonth, daysInMonth, getToday, isSameDay, parseIsoDay, recentMonths }
 import { countDays, groupByDay } from '@/lib/days';
 import { notebookStats } from '@/lib/notebook-stats';
 import { withDative } from '@/lib/text';
-import { deleteNotebook, getNotebook } from '@/mock';
+import { deleteNotebook, notebookIn } from '@/mock';
 import { colors, space } from '@/theme';
 import type { Memory, Picture } from '@/types';
 
@@ -37,7 +37,7 @@ export default function NotebookScreen() {
   const { open: addMemory } = useAddMemory();
   const notebooks = useNotebooks();
   const memories = useMemories();
-  const notebook = getNotebook(id);
+  const notebook = notebookIn(notebooks, id);
   const [name, setName] = useState(notebook?.name ?? '');
   /** Cover picked on this page (not saved yet). */
   const [picked, setCover] = useState<Picture>();

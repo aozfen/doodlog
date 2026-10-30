@@ -100,6 +100,15 @@ export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'https://doodlog-api.w
 /** Photos are resized to this many pixels on the long side before drawing. */
 export const DRAW_PHOTO_PX = 1536;
 
+/** "Anı ekle" sheet: photos shown, and how many are read from the library at most. */
+export const SHEET_PHOTOS = 6;
+export const GALLERY_FETCH = 60;
+/** With no photo today, the sheet shows photos of this many days back. */
+export const RECENT_PHOTO_DAYS = 7;
+
+/** The original photo is kept with the memory at most this many pixels on the long side. */
+export const KEEP_PHOTO_PX = 2048;
+
 /** The real drawing takes about 10-20 s; the wait bar is paced for this. */
 export const EXPECTED_DRAW_MS = 18000;
 

@@ -10,7 +10,7 @@ import { MONTHS_SHOWN, routes } from '@/constants';
 import { daysBetween, getToday, MONTH_NAMES, parseIsoDay, recentMonths, toIsoDay } from '@/lib/date';
 import { countDays, groupByDay } from '@/lib/days';
 import { useMemories, useNotebooks } from '@/hooks/use-store';
-import { getNotebook } from '@/mock';
+import { notebookIn } from '@/mock';
 import { space } from '@/theme';
 import type { Memory } from '@/types';
 
@@ -98,7 +98,7 @@ export default function CalendarScreen() {
           {selectedMemory ? (
             <DayCard
               memory={selectedMemory}
-              notebook={getNotebook(selectedMemory.notebookId)}
+              notebook={notebookIn(notebooks, selectedMemory.notebookId)}
               onPress={() => openMemory(selectedMemory)}
             />
           ) : null}

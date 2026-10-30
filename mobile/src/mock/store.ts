@@ -245,6 +245,22 @@ const toMemory = (r: MemoryRow): Memory[] =>
       ]
     : [];
 
+/**
+ * A memory whose notebook does not exist is shown nowhere. An early build saved drawings of
+ * mock photos into mock notebooks; those memories move to the first notebook. A deleted
+ * notebook's memories are moved or deleted with it, so they are never orphans.
+ */
+function adoptOrphans(memories: Memory[], notebooks: Notebook[]): Memory[] {
+  const home = notebooks[0];
+  if (!home) return memories;
+  const ids = new Set(notebooks.map((n) => n.id));
+  return memories.map((m) => {
+    if (ids.has(m.notebookId)) return m;
+    getDb().update('memory', { id: MemoryId.orThrow(m.id), notebookId: NotebookId.orThrow(home.id) });
+    return { ...m, notebookId: home.id };
+  });
+}
+
 /** Opens the database and fills the store. Call once before rendering screens. */
 export async function loadStore() {
   db = await evoluPromise;
@@ -262,7 +278,7 @@ export async function loadStore() {
   }
 
   const notebooks = notebookRows.flatMap(toNotebook);
-  const memories = memoryRows.flatMap(toMemory);
+  const memories = adoptOrphans(memoryRows.flatMap(toMemory), notebooks);
 
   const demo = profile.demo === Evolu.sqliteTrue;
   const base = demo ? seedUser : newUser();
@@ -375,8 +391,8 @@ export function createNotebook(name: string, kind: NotebookKind): Notebook {
 }
 
 /** The first drawing landed: it becomes today's memory and the notebook cover. */
-function finishDrawing(job: DrawJob, drawing: Picture) {
-  const { notebookId, photo } = job;
+function finishDrawing(job: DrawJob, drawing: Picture, photo = job.photo) {
+  const { notebookId } = job;
   const today = toIsoDay(getToday());
   // One memory per day in onboarding: today's earlier memory is replaced.
   const replaced = state.memories.filter((m) => m.date === today);
@@ -387,7 +403,7 @@ function finishDrawing(job: DrawJob, drawing: Picture) {
     ...state,
     notebooks: state.notebooks.map((n) => (n.id === notebookId ? { ...n, cover: drawing } : n)),
     memories: [...state.memories.filter((m) => m.date !== today), memory],
-    job: { ...job, drawing, status: 'done' },
+    job: { ...job, drawing, photo, status: 'done' },
   });
   saveProfile();
 }
@@ -410,11 +426,11 @@ async function runJob(job: DrawJob, minMs = 0, retries = BUSY_RETRIES): Promise<
   };
   if (!job.photo) return fail();
   try {
-    const { drawing, brushes } = await drawPhoto(job.photo, job.requestId);
+    const { drawing, photo, brushes } = await drawPhoto(job.photo, job.requestId);
     const wait = job.startedAt + minMs - Date.now();
     if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
     applyBalance(brushes);
-    if (current()) finishDrawing(job, drawing);
+    if (current()) finishDrawing(job, drawing, photo);
   } catch (error) {
     if (error instanceof DrawError && error.brushes) applyBalance(error.brushes);
     // The server is still drawing this request (sent before a restart): ask again later.

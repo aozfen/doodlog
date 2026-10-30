@@ -21,7 +21,7 @@ import { NotebookPicker } from '@/components/notebook/notebook-picker';
 import { Button, Chip, Field, Flat, IconButton, ProgressBar, ProgressFill, Sticker, Tag, Text } from '@/components/ui';
 import { EXPECTED_DRAW_MS, NOTE_MAX, REVEAL_MS, SCREEN_POP_MS } from '@/constants';
 import { useSheet } from '@/hooks/use-sheet';
-import { useUser } from '@/hooks/use-store';
+import { useNotebook, useUser } from '@/hooks/use-store';
 import { comingSoon, drawFailed, noBrushes } from '@/lib/alerts';
 import { drawingPop } from '@/lib/animations';
 import { dayMonth, getToday, toIsoDay } from '@/lib/date';
@@ -56,53 +56,54 @@ function usePhotoParam() {
   const params = useLocalSearchParams<{ photo?: string; notebook?: string }>();
   const key = params.photo && isDrawingKey(params.photo) ? params.photo : undefined;
   const photo: Picture | undefined = key ? photos[key] : params.photo ? { uri: params.photo } : undefined;
-  const guessed = key ? guessNotebook(key) : getNotebooks()[0]?.id;
-  const notebookId = params.notebook && getNotebook(params.notebook) ? params.notebook : guessed;
-  // Picked photos are not kept: the gallery asset id comes with the redraw feature.
-  return { photo, keepPhoto: key ? photo : undefined, notebookId };
+  // The mock guess points at the mock notebooks, which a real account does not have.
+  // A notebook that does not exist would hide the memory, so the first one is the fallback.
+  const notebookId = [params.notebook, key && guessNotebook(key), getNotebooks()[0]?.id].find(
+    (id): id is string => !!id && getNotebook(id) !== undefined,
+  );
+  return { photo, notebookId };
 }
 
 // Add memory, steps 2 and 3: "Çiziliyor…" then "Hazır". Design: design/a-ekle.html.
 // Notebook and date are prefilled from the photo, nothing is asked.
 export default function AddMemoryScreen() {
-  const { photo, keepPhoto, notebookId } = usePhotoParam();
-  const [drawing, setDrawing] = useState<Picture>();
+  const { photo, notebookId } = usePhotoParam();
+  const [result, setResult] = useState<Drawn>();
   const [round, setRound] = useState(0); // 0 = first drawing, 1+ = redraws
   // Stable callback so the drawing request does not restart on re-render.
-  const done = useCallback((result: Picture) => setDrawing(result), []);
+  const done = useCallback((drawn: Drawn) => setResult(drawn), []);
 
   if (!photo) return null;
-  if (!drawing) {
-    return (
-      <Drawing key={round} photo={photo} keepPhoto={keepPhoto} notebookId={notebookId} round={round} onDone={done} />
-    );
+  if (!result) {
+    return <Drawing key={round} photo={photo} notebookId={notebookId} round={round} onDone={done} />;
   }
   return (
     <Ready
-      drawing={drawing}
-      photo={keepPhoto}
+      drawing={result.drawing}
+      photo={result.photo}
       notebookId={notebookId}
       onRedraw={() => {
-        setDrawing(undefined);
+        setResult(undefined);
         setRound((r) => r + 1);
       }}
     />
   );
 }
 
+/** A finished drawing and the copy of its photo kept with the memory. */
+type Drawn = { drawing: Picture; photo?: Picture };
+
 function Drawing({
   photo,
-  keepPhoto,
   notebookId,
   round,
   onDone,
 }: {
   photo: Picture;
-  keepPhoto?: Picture;
   notebookId?: string;
   /** 0 = first drawing, 1+ = redraws. Every one costs 1 fırça. */
   round: number;
-  onDone: (drawing: Picture) => void;
+  onDone: (drawn: Drawn) => void;
 }) {
   const insets = useSafeAreaInsets();
   const bar = useSharedValue(0);
@@ -110,7 +111,7 @@ function Drawing({
   const [drawing, setDrawing] = useState<Picture>();
   /** Past the expected time: say it is nearly done instead of looking stuck. */
   const [late, setLate] = useState(false);
-  const notebook = notebookId ? getNotebook(notebookId) : undefined;
+  const notebook = useNotebook(notebookId);
   const user = useUser();
 
   useEffect(() => {
@@ -121,19 +122,19 @@ function Drawing({
     );
     const lateTimer = setTimeout(() => setLate(true), EXPECTED_DRAW_MS);
     drawPhoto(photo, newRequestId())
-      .then(({ drawing: result, brushes }) => {
+      .then(({ drawing: result, photo: kept, brushes }) => {
         applyBalance(brushes);
         if (!open) {
           // Closed while drawing: the brush is spent, so the drawing is kept as today's memory.
           if (notebookId) {
-            addMemory({ notebookId, date: toIsoDay(getToday()), note: '', drawing: result, photo: keepPhoto });
+            addMemory({ notebookId, date: toIsoDay(getToday()), note: '', drawing: result, photo: kept });
           }
           return;
         }
         setDrawing(result);
         bar.value = withTiming(1, { duration: REVEAL_MS });
         reveal.value = withTiming(1, { duration: REVEAL_MS, easing: Easing.inOut(Easing.quad) }, (finished) => {
-          if (finished) scheduleOnRN(onDone, result);
+          if (finished) scheduleOnRN(onDone, { drawing: result, photo: kept });
         });
       })
       .catch((error: unknown) => {
@@ -218,7 +219,7 @@ function Ready({
   onRedraw,
 }: {
   drawing: Picture;
-  /** Kept with the memory. Undefined for picked photos (see usePhotoParam). */
+  /** The photo copy kept with the memory. Undefined when the copy failed. */
   photo?: Picture;
   notebookId?: string;
   onRedraw: () => void;
@@ -227,7 +228,7 @@ function Ready({
   const [notebookId, setNotebookId] = useState(initialNotebookId);
   const sheet = useSheet<'picker' | 'newNotebook'>();
   const [note, setNote] = useState('');
-  const notebook = notebookId ? getNotebook(notebookId) : undefined;
+  const notebook = useNotebook(notebookId);
   const footBottom = Math.max(insets.bottom, 20) + 10;
 
   const redraw = () => {

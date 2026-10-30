@@ -39,13 +39,26 @@
       "expo-secure-store",
       "expo-asset",
       [
+        "expo-media-library",
+        {
+          "photosPermission": "Bugün çektiğin fotoğrafları gösterir, seçtiğini anı olarak çizer.",
+          "savePhotosPermission": "Çizimlerini galerine kaydeder.",
+          "isAccessMediaLocationEnabled": false,
+          "granularPermissions": [
+            "photo"
+          ]
+        }
+      ],
+      [
         "expo-image-picker",
         {
-          "photosPermission": "Anılarını çizmek için seçtiğin fotoğraflara erişir.",
+          "photosPermission": "Bugün çektiğin fotoğrafları gösterir, seçtiğini anı olarak çizer.",
           "cameraPermission": false,
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-image",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,9 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 
 import { CheckDot, Icon, ListGroup, ListItem, Sheet, Text } from '@/components/ui';
-import { useNotebooks } from '@/hooks/use-store';
+import { useMemories, useNotebooks } from '@/hooks/use-store';
 import { notebookStatus } from '@/lib/notebook-stats';
-import { statsOf } from '@/mock';
+import { statsIn } from '@/mock';
 
 import { NotebookCover } from './notebook-cover';
 import { colors } from '@/theme';
@@ -22,6 +22,7 @@ type Props = {
 // Design: design/a-ani-menu.html (4). Also used later by "Başka deftere taşı".
 export function NotebookPicker({ visible, selected, onSelect, onClose, onNew, footnote }: Props) {
   const notebooks = useNotebooks();
+  const memories = useMemories();
   return (
     <Sheet visible={visible} onClose={onClose}>
       <Text variant="sec" style={{ textAlign: 'center' }}>
@@ -32,7 +33,7 @@ export function NotebookPicker({ visible, selected, onSelect, onClose, onNew, fo
           <ListItem
             key={n.id}
             label={n.name}
-            detail={n.id === selected ? 'Seçili' : notebookStatus(statsOf(n.id))}
+            detail={n.id === selected ? 'Seçili' : notebookStatus(statsIn(memories, n.id))}
             left={<NotebookCover cover={n.cover} style={styles.cover} />}
             right={n.id === selected ? <CheckDot /> : null}
             onPress={() => {

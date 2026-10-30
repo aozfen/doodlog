@@ -12,8 +12,7 @@ import { WATERMARK } from '@/constants';
 import { comingSoon } from '@/lib/alerts';
 import { drawingPop } from '@/lib/animations';
 import { fullDate, parseIsoDay } from '@/lib/date';
-import { useUser } from '@/hooks/use-store';
-import { getMemory } from '@/mock';
+import { useMemory, useUser } from '@/hooks/use-store';
 import { colors, fonts } from '@/theme';
 import type { Memory } from '@/types';
 
@@ -37,7 +36,7 @@ export default function ShareScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const [format, setFormat] = useState<Format>('story');
-  const memory = getMemory(id);
+  const memory = useMemory(id);
   const caption = FORMATS.find((f) => f.value === format)?.caption;
 
   return (

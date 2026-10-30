@@ -23,10 +23,10 @@ import {
 } from '@/components/ui';
 import { SCREEN_POP_MS, routes } from '@/constants';
 import { useSheet } from '@/hooks/use-sheet';
-import { useMemories } from '@/hooks/use-store';
+import { useMemories, useNotebooks } from '@/hooks/use-store';
 import { comingSoon } from '@/lib/alerts';
 import { dayMonth, dayName, getToday, parseIsoDay } from '@/lib/date';
-import { deleteMemory, getNotebook, setMemoryNote } from '@/mock';
+import { deleteMemory, notebookIn, setMemoryNote } from '@/mock';
 import { colors, space } from '@/theme';
 
 // Memory detail. Design: design/a-takvim.html (3) and design/a-ani-menu.html.
@@ -37,6 +37,7 @@ export default function MemoryScreen() {
   const sheet = useSheet<'menu' | 'delete' | 'note'>();
   const [photoOpen, setPhotoOpen] = useState(false);
   const memories = useMemories();
+  const notebooks = useNotebooks();
   const toast = useToast();
 
   const opened = memories.find((m) => m.id === id);
@@ -65,7 +66,7 @@ export default function MemoryScreen() {
   const date = parseIsoDay(memory.date);
   const year = date.getFullYear();
   const title = dayMonth(date);
-  const notebook = getNotebook(memory.notebookId);
+  const notebook = notebookIn(notebooks, memory.notebookId);
   const footBottom = Math.max(insets.bottom, 20) + 10;
   const menuAction = (what: string) => sheet.then(() => comingSoon(what));
 

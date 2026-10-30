@@ -1,6 +1,11 @@
 // App repository (Evolu backed, see store.ts). Screens read data only through these helpers.
+// In render, read through the hooks in hooks/use-store.ts or the pure `...In` selectors below.
+// The React Compiler caches a call with no reactive input, so `getTodayMemory()` in render
+// keeps its first answer. The `get...` getters are for event handlers and the store.
 import { getToday, isoDay, toIsoDay } from '@/lib/date';
 import { notebookStats } from '@/lib/notebook-stats';
+
+import type { Memory, Notebook } from '@/types';
 
 import type { DrawingKey } from './images';
 import { NOTEBOOK_OF } from './notebooks';
@@ -41,19 +46,30 @@ export {
 } from './store';
 export { brushMoves, totalBrushes } from './user';
 
-export const getNotebook = (id: string) => getNotebooks().find((n) => n.id === id);
-export const getMemory = (id: string) => getMemories().find((m) => m.id === id);
-export const memoriesOf = (notebookId: string) => getMemories().filter((m) => m.notebookId === notebookId);
-export const statsOf = (notebookId: string) => notebookStats(memoriesOf(notebookId), getToday());
-
+// Pure selectors over lists from the hooks.
+export const notebookIn = (notebooks: Notebook[], id: string | undefined) =>
+  id === undefined ? undefined : notebooks.find((n) => n.id === id);
+export const memoryIn = (memories: Memory[], id: string | undefined) =>
+  id === undefined ? undefined : memories.find((m) => m.id === id);
+export const statsIn = (memories: Memory[], notebookId: string) =>
+  notebookStats(
+    memories.filter((m) => m.notebookId === notebookId),
+    getToday(),
+  );
 /** Newest memory of a day. */
-const memoryOn = (day: string) => getMemories().findLast((m) => m.date === day);
-export const getTodayMemory = () => memoryOn(toIsoDay(getToday()));
-export const getOnThisDayMemory = () =>
-  memoryOn(isoDay(getToday().getFullYear() - 1, getToday().getMonth(), getToday().getDate()));
+const newestOn = (memories: Memory[], day: string) => memories.findLast((m) => m.date === day);
+export const todayIn = (memories: Memory[]) => newestOn(memories, toIsoDay(getToday()));
+export const onThisDayIn = (memories: Memory[]) => {
+  const today = getToday();
+  return newestOn(memories, isoDay(today.getFullYear() - 1, today.getMonth(), today.getDate()));
+};
 
-/** Photos taken today, shown first in the picker. */
-export const todayPhotos: DrawingKey[] = ['couple01', 'couple02', 'couple04', 'couple05', 'couple06', 'couple08'];
+// Current values, for event handlers and the store. Not for render (see the top).
+export const getNotebook = (id: string) => notebookIn(getNotebooks(), id);
+export const getMemory = (id: string) => memoryIn(getMemories(), id);
+export const memoriesOf = (notebookId: string) => getMemories().filter((m) => m.notebookId === notebookId);
+export const statsOf = (notebookId: string) => statsIn(getMemories(), notebookId);
+export const getTodayMemory = () => todayIn(getMemories());
 
 export const isDrawingKey = (key: string): key is DrawingKey => key in NOTEBOOK_OF;
 export const guessNotebook = (key: DrawingKey) => NOTEBOOK_OF[key];
