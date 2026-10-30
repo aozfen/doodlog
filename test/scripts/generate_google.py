@@ -5,7 +5,8 @@ Usage:
   python3 test/scripts/generate_google.py --mode v2 --suffix _b   # second sample
 
 Modes (character cards from make_cards.py are sent with every photo):
-  v1  strict sticker + soft fade, then Apple Vision background cutout (keeps *_raw.png)
+  v1    strict sticker + soft fade, then Apple Vision background cutout (keeps *_raw.png)
+  v1.2  v1 + no halo lines around figures (the app's prompt), same cutout
   v2  v1 fade and face focus, keeps a few meaningful close objects, no cutout
 Old prompts are kept in test/PROMPTS.md.
 
@@ -61,6 +62,12 @@ V1_STYLE = (
 )
 
 
+
+# v1.2: v1 + no halo lines around figures. Same as worker/src/prompts.ts.
+V1_2_STYLE = V1_STYLE + (
+    " Draw no outline, halo, glow, aura, sketch lines or motion lines around the figures; "
+    "right outside every figure the background is pure white."
+)
 
 # v2 (was card5): v1 soft fade + face focus, keeps a few meaningful close objects; no cutout.
 V2_STYLE = (
@@ -164,7 +171,7 @@ def log(row):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--model", default="gemini-nano-banana-2.1")
-    ap.add_argument("--mode", choices=["v1", "v2"], default="v1")
+    ap.add_argument("--mode", choices=["v1", "v1.2", "v2"], default="v1")
     ap.add_argument("--suffix", default="", help="extra folder suffix, e.g. _b for a second sample")
     ap.add_argument("--only", nargs="*", help="photo names without extension, e.g. cift_01 me_02")
     ap.add_argument("--sets", nargs="*", help="photo set folders, default: all")
@@ -191,7 +198,7 @@ def main():
         cards = sorted((CARDS / s).glob("*.png"))
         if not cards:
             sys.exit(f"no cards in {CARDS / s}, run make_cards.py first")
-        prompt = (V1_STYLE if a.mode == "v1" else V2_STYLE).format(n=len(cards))
+        prompt = {"v1": V1_STYLE, "v1.2": V1_2_STYLE, "v2": V2_STYLE}[a.mode].format(n=len(cards))
         for photo in photos:
             target = outdir / (photo.stem + ".png")
             if target.exists() and not a.force:
@@ -210,7 +217,7 @@ def main():
                 row.update(usage_cost(a.model, resp))  # billed even when no image comes back
                 target.write_bytes(extract_image(resp))
                 row["ok"] = 1
-                if a.mode == "v1":  # cutout keeps *_raw.png
+                if a.mode in ("v1", "v1.2"):  # cutout keeps *_raw.png
                     raw = target.with_name(target.stem + "_raw.png")
                     target.replace(raw)
                     res = subprocess.run([str(CUTOUT), str(raw), str(target)], capture_output=True, text=True)

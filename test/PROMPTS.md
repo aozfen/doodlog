@@ -48,6 +48,16 @@ Style: naive children's drawing made with wax crayons and oil pastels, visible c
 MOST IMPORTANT, sticker format: a single isolated sticker on a plain pure white background. No room, furniture, plants, walls, floor or scenery unless it is a key object. No shadows, no frame, no text. The whole drawing must fit inside the image with wide white margin on every side; nothing touches or crosses the edges.
 ```
 
+## v1.2 (card3 + no halo) — NOW in the app
+
+v1 with one more sentence at the end of the sticker rule. v1 sometimes drew faint sketch lines around a figure (seen on a white jacket); Vision kept them as part of the subject, with white paper between, so the sticker got a white halo. The app also clears white left next to the cut edge (cutout module, `clearWhiteEdge`). Not yet compared against v1 in test/compare.html.
+
+Added after "...nothing touches or crosses the edges.":
+
+```
+Draw no outline, halo, glow, aura, sketch lines or motion lines around the figures; right outside every figure the background is pure white.
+```
+
 ## v4 (card4)
 
 card3 without strict rules, close context allowed, no cutout. Context back, but random deformed figures and invented background.
